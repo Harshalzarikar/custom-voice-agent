@@ -215,7 +215,7 @@ sequenceDiagram
 | **REST API (FastAPI)** | Agent CRUD, token generation, health checks | Non-real-time operations; request-response fits better than persistent connections | Express.js (Python needed for livekit-agents SDK) |
 | **LiveKit Data Channel** | Control messages (metrics, cancellation, transcripts) | Reliable, ordered delivery alongside audio; no separate WebSocket needed | Separate WebSocket server (adds connection management complexity) |
 | **In-Memory State** | Active conversation context per session | Low latency; each session is isolated in its own worker process | Redis (adds infrastructure; unnecessary for single-session-per-worker model) |
-| **agents.json** | Agent persona persistence | Simple file-based storage adequate for assessment scope | PostgreSQL/MongoDB (production-grade but over-engineered for this use case) |
+| **agents.json** | Agent persona persistence | File storage is enough for a single-host deploy | PostgreSQL when agents must survive redeploys |
 | **Per-Session Queues** | LiveKit SDK internally manages audio queues per agent session | Built-in backpressure via SDK's async pipeline; no custom queue needed | Custom bounded queue with drain/coalesce (could be added for production) |
 
 ---
