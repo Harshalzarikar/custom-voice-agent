@@ -102,6 +102,34 @@ Navigate to `http://localhost:5173` in your browser.
 ---
 
 ## Testing Logical Challenges (Reviewer Guide)
-To prove the resilience of the pipeline against edge cases, you can speak the following secret trigger phrases into the microphone during a session:
+These phrases are enabled when `ENABLE_DEMO_TRIGGERS` is true (the local default). Production sets it to false. Speak them into the microphone during a session:
 - Say **"Simulate delay"**: The backend will intentionally stall the TTS pipeline for 3 seconds. Watch the yellow backpressure warning banner drop down and the system gracefully recover without freezing.
 - Say **"Simulate duplicate"**: The backend will intentionally broadcast a duplicated WebRTC packet with an identical sequence number. Check your browser's Developer Console to verify the UI explicitly drops the duplicate packet `(seq X <= X)`.
+
+---
+
+## Production deploy (Render)
+
+`render.yaml` describes two services: `vocal-backend` (API + voice worker) and `vocal-frontend` (static build). The backend blueprint uses Render's Starter plan so the voice worker stays awake. The free plan sleeps and drops live calls.
+
+`FRONTEND_URL` is filled from the frontend hostname, and `VITE_API_URL` is filled from the API hostname. Both are public hosts. The API adds `https://` when the value has no scheme.
+
+Set these secrets on the backend service before the first boot:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | WebRTC and agent dispatch. |
+| `GROQ_API_KEY`, `DEEPGRAM_API_KEY` | LLM and speech. |
+| `TAVILY_API_KEY` | Optional web search. |
+
+`VITE_API_URL` is injected at **frontend build time**. Changing the API host means rebuilding the frontend.
+
+What the deploy already enforces:
+
+- One API process, so agent saves are read from disk on every request instead of a stale per-process cache.
+- The voice worker restarts if it exits, and `/api/health` reports whether its heartbeat is fresh.
+- Uploads are limited to 5 MB PDF/TXT files. Room tokens only match the session name the UI generates.
+- Create, token, and log endpoints are rate limited. Server errors do not return stack traces.
+- Idle worker processes default to 1 in production so a small instance does not run out of memory.
+
+Agent records still live in `agents.json` on the service disk. That disk is wiped on redeploy. Move `DATA_DIR` to a persistent disk, or replace the file store, before you need agents to survive deploys. The public UI has no user accounts: rate limits slow abuse, they do not replace authentication.

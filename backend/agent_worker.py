@@ -17,13 +17,13 @@ ROBUSTNESS FEATURES:
 
 import asyncio
 import os
+import sys
 import json
 import logging
-import multiprocessing
+import threading
 import time
 import uuid
 from typing import Optional, Dict, Any
-from dotenv import load_dotenv
 from livekit.agents import JobContext, WorkerOptions, cli, AutoSubscribe
 from livekit.agents.voice import Agent, AgentSession
 from livekit.agents.llm import FallbackAdapter
@@ -32,26 +32,41 @@ from livekit.agents import tts as agents_tts
 from livekit.plugins import deepgram, openai, silero
 from tavily import AsyncTavilyClient
 
-load_dotenv()
+from runtime_config import DB_FILE, ENABLE_DEMO_TRIGGERS, HEARTBEAT_FILE, IS_PRODUCTION
 
-# Setup robust logging (Console + File)
 logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("vocal_voice.log", encoding="utf-8"),
-        logging.StreamHandler()
-    ]
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
+    + (
+        []
+        if IS_PRODUCTION
+        else [logging.FileHandler(DB_FILE.parent / "vocal_voice.log", encoding="utf-8")]
+    ),
+    force=True,
 )
 logger = logging.getLogger("agent_worker")
-logging.getLogger("livekit").setLevel(logging.DEBUG)
+logging.getLogger("livekit").setLevel(logging.INFO if IS_PRODUCTION else logging.DEBUG)
 
 def load_agent_config(agent_id: str):
-    if os.path.exists("agents.json"):
-        with open("agents.json", "r") as f:
+    if not DB_FILE.exists():
+        return None
+    try:
+        with DB_FILE.open("r", encoding="utf-8") as f:
             db = json.load(f)
-            return db.get(agent_id)
-    return None
+        return db.get(agent_id) if isinstance(db, dict) else None
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.error("Could not read agent config: %s", exc)
+        return None
+
+
+def _write_heartbeat() -> None:
+    while True:
+        try:
+            HEARTBEAT_FILE.write_text(str(time.time()), encoding="utf-8")
+        except OSError as exc:
+            logger.warning("Worker heartbeat write failed: %s", exc)
+        time.sleep(10)
 
 # ── INPUT GUARDRAILS ──────────────────────────────────────────────────────────
 BLOCKED_TOPICS = [
@@ -534,13 +549,13 @@ async def entrypoint(ctx: JobContext):
             curr_time = time.perf_counter()
             turn_metrics["stt_finalized"] = curr_time
             
-            # TRIGGER FOR TTS BACKPRESSURE REQUIREMENT #5
-            if "simulate delay" in text_clean.lower():
+            # Reviewer triggers stay off in production (ENABLE_DEMO_TRIGGERS).
+            if ENABLE_DEMO_TRIGGERS and "simulate delay" in text_clean.lower():
                 logger.info("[PIPELINE] 🚨 Trigger word 'simulate delay' detected! Next TTS stream will stall for 3s.")
                 tts.delay_active = True
                 
             # TRIGGER FOR TURN BOOKKEEPING REQUIREMENT #1
-            if "simulate utterance" in text_clean.lower():
+            if ENABLE_DEMO_TRIGGERS and "simulate utterance" in text_clean.lower():
                 logger.info("[PIPELINE] 🚨 Trigger word 'simulate utterance' detected! Firing simulated interims...")
                 async def run_turn_test():
                     class FakeEv:
@@ -563,7 +578,7 @@ async def entrypoint(ctx: JobContext):
                 asyncio.ensure_future(run_turn_test())
 
             # TRIGGER FOR DUPLICATE AUDIO SEGMENTS REQUIREMENT #7
-            if "simulate duplicate" in text_clean.lower():
+            if ENABLE_DEMO_TRIGGERS and "simulate duplicate" in text_clean.lower():
                 logger.info("[PIPELINE] 🚨 Trigger word 'simulate duplicate' detected! Simulating duplicate logical segments...")
                 async def run_dup_test():
                     await asyncio.sleep(2.0)
@@ -582,7 +597,7 @@ async def entrypoint(ctx: JobContext):
                 asyncio.ensure_future(run_dup_test())
                 
             # TRIGGER FOR CONTEXT WINDOW
-            if "simulate context" in text_clean.lower():
+            if ENABLE_DEMO_TRIGGERS and "simulate context" in text_clean.lower():
                 logger.info("[PIPELINE] 🚨 Trigger word 'simulate context' detected! Injecting fake history.")
                 if hasattr(agent, 'chat_ctx') and hasattr(agent, 'update_chat_ctx'):
                     async def run_ctx_test():
@@ -812,9 +827,12 @@ async def entrypoint(ctx: JobContext):
 
 
 if __name__ == "__main__":
-    worker_procs = max(1, multiprocessing.cpu_count() - 1)
+    if "start" in sys.argv:
+        threading.Thread(target=_write_heartbeat, daemon=True).start()
+    default_idle = "1" if IS_PRODUCTION else str(max(1, (os.cpu_count() or 2) - 1))
+    idle = max(0, int(os.getenv("WORKER_IDLE_PROCESSES", default_idle)))
     cli.run_app(WorkerOptions(
         entrypoint_fnc=entrypoint,
         agent_name="vocal-agent",
-        num_idle_processes=worker_procs,
+        num_idle_processes=idle,
     ))

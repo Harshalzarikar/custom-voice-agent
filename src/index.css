@@ -1011,6 +1011,10 @@ input, textarea, button { font-family: inherit; }
 /* ==============================
    ERROR & WARNING BANNERS
 ============================== */
+.app-notice {
+  margin: 0;
+}
+
 .error-banner {
   background: rgba(239,68,68,0.12);
   border-bottom: 1px solid rgba(239,68,68,0.3);

@@ -43,6 +43,18 @@ const API_BASE = rawApiUrl
   ? (rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`) 
   : 'http://localhost:5000';
 
+const api = axios.create({ baseURL: API_BASE, timeout: 20000 });
+
+const readApiError = (err: unknown, fallback: string) => {
+  if (axios.isAxiosError(err)) {
+    const detail = err.response?.data?.detail;
+    if (typeof detail === 'string' && detail.trim()) return detail;
+    if (err.code === 'ECONNABORTED') return 'The API took too long to respond.';
+    if (!err.response) return 'Cannot reach the API. Check that the backend is running and VITE_API_URL is correct.';
+  }
+  return fallback;
+};
+
 // ── Frontend Logger (Console + File via Backend) ──
 const logBuffer: Array<{ timestamp: string; tag: string; message: string; data?: string }> = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -911,6 +923,7 @@ const App = () => {
   // App-level error state so it survives component unmounts and can handle root LiveKitRoom errors
   const [errors, setErrors] = useState<PipelineError[]>([]);
   const [isDisconnected, setIsDisconnected] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
 
   const dismissError = (id: string) => {
@@ -926,10 +939,11 @@ const App = () => {
 
   const fetchAgents = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/agents`);
+      const res = await api.get('/api/agents');
       setAgents(res.data);
     } catch (err) {
       log('API', '❌ Failed to fetch agents', err);
+      setNotice(readApiError(err, 'Could not load agents.'));
     }
   };
 
@@ -947,12 +961,13 @@ const App = () => {
     formData.append('system_prompt', prompt);
     if (file) formData.append('reference_file', file);
     try {
-      await axios.post(`${API_BASE}/api/agents`, formData);
+      await api.post('/api/agents', formData);
       await fetchAgents();
       setShowCreate(false);
       setName(''); setObjective(''); setPrompt(''); setFile(null);
-    } catch {
-      alert("Error creating agent");
+      setNotice(null);
+    } catch (err) {
+      setNotice(readApiError(err, 'Could not create that agent.'));
     } finally {
       setLoading(false);
     }
@@ -964,15 +979,17 @@ const App = () => {
     setLoading(true);
     try {
       // eslint-disable-next-line react-hooks/purity
-      const roomName = `agent_${agent.id}_${Math.random().toString(36).substring(7)}`;
-      const res = await axios.post(`${API_BASE}/api/token`, {
+      const suffix = Math.random().toString(36).slice(2).padEnd(8, '0').slice(0, 8);
+      const roomName = `agent_${agent.id}_${suffix}`;
+      const res = await api.post('/api/token', {
         room_name: roomName,
         participant_name: 'User'
       });
       setConnectionDetails(res.data);
       setActiveAgent(agent);
-    } catch {
-      alert("Error starting voice session");
+      setNotice(null);
+    } catch (err) {
+      setNotice(readApiError(err, 'Could not start the voice session.'));
     } finally {
       setLoading(false);
     }
@@ -1008,6 +1025,16 @@ const App = () => {
           </button>
         </div>
       </header>
+
+      {notice && (
+        <div className="error-banner app-notice" role="alert">
+          <div className="error-banner-content">
+            <AlertTriangle size={16} />
+            <span>{notice}</span>
+          </div>
+          <button onClick={() => setNotice(null)} className="btn-error-dismiss">Dismiss</button>
+        </div>
+      )}
 
       <main className="app-main">
         {/* Create Agent Panel */}
