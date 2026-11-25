@@ -1,6 +1,8 @@
 # Custom Voice Agent
 
-My real-time voice assistant. The browser streams audio over WebRTC (LiveKit). Deepgram turns speech into text and text back into speech. Groq writes the reply. A FastAPI service creates agents and issues room tokens. A Python worker runs the live pipeline.
+A real-time voice assistant. You sign in, create an agent, give it a job and a document, and talk to it in the browser. Harbor Desk answers a shop FAQ. City Hospital Front Desk is one agent that can book a visit: it checks open times, waits for a name and a 10-digit phone number, and saves the slot so that hospital cannot book the same department, date, and time twice.
+
+The browser streams audio over WebRTC (LiveKit). Deepgram turns speech into text and text back into speech. Groq writes the reply. A FastAPI service stores accounts, agents, and visits. A Python worker runs the live call.
 
 ## Latency
 
@@ -11,12 +13,12 @@ The design target is a turn under **500ms**, from the moment speech ends to the 
 | WebRTC uplink | ~25ms | Opus frames from the browser to the LiveKit SFU |
 | Speech-to-text | ~110ms | Deepgram Nova-3, including end-of-speech detection |
 | Input check | <1ms | Empty, blocked, and prompt-injection filter |
-| Language model | ~185ms | Groq time to the first token (`gpt-oss-20b`, with a larger fallback) |
+| Language model | ~185ms | Groq time to the first token (`gpt-oss-20b`, then `gpt-oss-120b`) |
 | Text-to-speech | ~85ms | Deepgram Aura-2 time to the first audio byte |
 | Playback | ~30ms | Downlink and the browser starting the buffer |
 | **End to end** | **~435ms** | **Target: under 500ms** |
 
-I measured one live turn by publishing the spoken question “What is the capital of France?” into a LiveKit room. The worker transcribed it and began “Paris is the capital of.” Clocks are the worker’s own, from when it decided the utterance had ended:
+One live turn was measured by publishing the spoken question “What is the capital of France?” into a LiveKit room. The worker transcribed it and began “Paris is the capital of.” Clocks are the worker’s own, from when it decided the utterance had ended:
 
 | Stage | Measured |
 | :--- | ---: |
@@ -31,9 +33,17 @@ Each turn still records speech end, the final transcript, the first model token,
 
 Two measurement bugs had to be fixed before those numbers meant anything. If speech-to-text finished before voice-activity detection reported silence, latency came out negative. If detection missed the utterance and the transcript arrived late, the same gap looked like multiple seconds. Both cases are clamped so a clock-order glitch cannot show up as a fake latency.
 
+## What a call can do
+
+Harbor Desk uses the pasted document, cut at 12,000 characters, and may search the web. City Hospital Front Desk does not search the web. Its hours live in code: Monday–Saturday, 09:00–16:30, every 30 minutes, closed Sunday. Today’s slots must start at least 15 minutes ahead. Open times are that grid minus rows already saved for that hospital.
+
+A booking stores a confirmation id, the hospital account, the hospital name, the patient name, the phone, the department, the date, and the time. The phone is exactly 10 digits and is encrypted at rest. Lookup and cancel on a call, and the public confirmation form, require that same phone. The public calendar shows Booked, Passed, or Open. It does not show patient names.
+
+One voice worker holds one live call (`MAX_ACTIVE_CALLS`, default 1). A second token request gets HTTP 409 until that room is released or the hold goes stale (90 seconds).
+
 ## Engineering problems this had to solve
 
-**Barge-in left ghost audio.** If I interrupted the assistant, audio already in flight kept playing over the new reply. Every response now carries a generation id. When speech starts again, the worker cancels that generation, closes the in-flight model stream, and the UI drops text and audio that belong to the old id.
+**Barge-in left ghost audio.** If the caller interrupted the assistant, audio already in flight kept playing over the new reply. Every response carries a generation id. When speech starts again, the worker cancels that generation, closes the in-flight model stream, and the UI drops text and audio that belong to the old id.
 
 **A slow TTS provider stalled the turn.** A 2.5s timeout cancels a hung synthesis stream and surfaces a backpressure warning. The transcript still appears, so a stuck provider does not freeze the session.
 
@@ -43,11 +53,15 @@ Two measurement bugs had to be fixed before those numbers meant anything. If spe
 
 **WebSocket audio was the wrong transport.** Raw socket audio has no jitter buffer, no Opus, and no NAT traversal. LiveKit carries full-duplex audio and the control messages on one WebRTC session, so there is no second socket to keep in sync.
 
-**The API and the worker disagreed about agents.** Several Gunicorn processes each cached `agents.json` in memory, so a save on one process was invisible to the others. Production runs a single API process and reads the file on every request. The worker restarts if it exits, and `/api/health` reports whether its heartbeat is fresh.
+**Two hospitals could not share one clock time.** Visits are keyed by account, department, date, and time. The same 11:00 can exist once per hospital.
 
-**A public token endpoint can burn provider quota.** Room names must match the id the UI generates. Uploads are limited to 5MB PDF or TXT files. Create, token, and log routes are rate limited. Failures return a short message, not a stack trace. Browser calls are limited to `FRONTEND_URL`.
+**A public calendar listed patient names.** The desk view now returns time, label, and state. Confirmation lookup returns the visit only when the phone matches, and the response omits the phone.
 
-Deeper notes on the waterfall, transport choice, and the barge-in sequence are in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+**Rate limits lived in process memory.** Hits are rows in `rate_hits`, so a restart does not wipe the window. Limits are per client address: auth 8/min, agent writes 10/min, confirmation lookup 8/min, token 20/min, frontend logs 30/min. `TRUST_PROXY` must be true before the last `X-Forwarded-For` hop is treated as the client.
+
+**Groq can refuse a turn.** `gpt-oss-20b` and `gpt-oss-120b` share one token budget. When both fail, the worker tries `llama-3.1-8b-instant`. That third name has to be a model the Groq account can call. If every model fails, the worker asks the caller to say that again, and the booking tool does not run.
+
+Deeper notes on the waterfall, the booking data, and the barge-in sequence are in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Run it locally
 
@@ -59,10 +73,9 @@ yarn install
 yarn dev
 ```
 
-In a second terminal:
+In a second terminal, from `backend`:
 
 ```bash
-cd backend
 python -m venv venv
 # Windows: .\venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
@@ -70,20 +83,28 @@ pip install -r requirements.txt
 python main.py
 ```
 
-In a third terminal, with the same virtualenv active:
+In a third terminal, with the same virtualenv active and the same working directory:
 
 ```bash
-cd backend
 python agent_worker.py start
 ```
 
-Open `http://localhost:5173`, create an agent, and start a session.
+Point `DATA_DIR` at the `backend` folder for both Python processes when it is not already that folder. The API and the worker must share one `vocal.db`. On Windows PowerShell:
+
+```powershell
+$env:DATA_DIR = "d:\Documents\vocal-voice\backend"
+python main.py
+```
+
+Open `http://localhost:5173`, register a hospital, and start a session. The first account created while `ENV=development` claims agents and visits that have no owner. Production registration does not claim those rows.
 
 `ENABLE_DEMO_TRIGGERS` defaults to on locally and off in production. While it is on, saying "simulate delay" or "simulate duplicate" exercises the timeout and the duplicate-packet drop.
 
+`SESSION_SECRET` signs the 14-day login token and encrypts phone numbers. Locally, if it is unset, a secret is written under `DATA_DIR`. Changing it makes stored phones unreadable. Production refuses to boot without `SESSION_SECRET`.
+
 ## Deploy
 
-`render.yaml` defines two services: `vocal-backend` (API and voice worker) and `vocal-frontend` (static build). The backend uses Render's Starter plan so the worker stays awake. The free plan sleeps and drops live calls.
+`render.yaml` defines two services: `vocal-backend` (API and voice worker) and `vocal-frontend` (static build). The backend uses Render’s starter plan and a 1GB disk mounted at `/var/data`. A free instance sleeps and drops a live call. A deploy still restarts the process and drops a call that is already connected. `MAX_ACTIVE_CALLS` is 1.
 
 `FRONTEND_URL` comes from the frontend hostname. `VITE_API_URL` comes from the API hostname and is baked in at **frontend build time**, so changing the API host means rebuilding the frontend.
 
@@ -93,6 +114,11 @@ Set these on the backend service before the first boot:
 | :--- | :--- |
 | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | WebRTC and agent dispatch |
 | `GROQ_API_KEY`, `DEEPGRAM_API_KEY` | Language model and speech |
-| `TAVILY_API_KEY` | Optional web search |
+| `TAVILY_API_KEY` | Web search for agents that do not book visits |
+| `SESSION_SECRET` | Login tokens and phone encryption. Generated by the blueprint. |
+| `DATABASE_URL` | Optional Postgres URL. Empty means SQLite at `DATA_DIR/vocal.db`. |
+| `DATA_DIR` | `/var/data` on the Render disk |
+| `TRUST_PROXY` | `true` on Render, so the last forwarded hop is the client |
+| `MAX_ACTIVE_CALLS` | `1` |
 
-Agents are stored in `agents.json` on the service disk. That disk is wiped on redeploy. Point `DATA_DIR` at a persistent disk, or replace the file store, if agents need to survive deploys. The UI has no accounts. Rate limits slow abuse. They are not a substitute for authentication.
+SQLite on that disk keeps accounts and visits across a redeploy of the same service. Set `DATABASE_URL` when the API and the worker should share Postgres. That path is in the code. It has not been run against a live Postgres server in this project.

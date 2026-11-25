@@ -1,0 +1,13 @@
+Harbor Desk is a small help desk for independent shops. This document is the only source the voice agent may use.
+
+Hours: Phone and chat support are open Monday to Friday, 9am to 6pm India Standard Time. The desk is closed on weekends and public holidays.
+
+Plans: The Starter plan is 999 rupees per month and includes one shop and email support. The Shop plan is 2499 rupees per month and includes three shops and voice support. There is no free trial.
+
+Refunds: A new subscription can be refunded within 7 days if the shop has not imported products. After an import, refunds are not available. Ask the caller for the email on the account before promising a refund.
+
+Password reset: Tell the caller to open harbordesk.example/reset and enter the account email. A reset link arrives within 5 minutes. Support cannot see or change the password.
+
+Shipping labels: Labels are created from the Orders page. Each label costs 15 rupees and is billed on the next invoice. Harbor Desk does not pick up parcels. The shop hands the parcel to the courier named on the label.
+
+If a question is not answered in this document, say you do not have that information and offer to take a message for the shop owner.

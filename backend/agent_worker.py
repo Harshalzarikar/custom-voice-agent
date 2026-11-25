@@ -23,6 +23,7 @@ import logging
 import threading
 import time
 import uuid
+from datetime import datetime
 from typing import Optional, Dict, Any
 from livekit.agents import JobContext, WorkerOptions, cli, AutoSubscribe
 from livekit.agents.voice import Agent, AgentSession
@@ -32,6 +33,8 @@ from livekit.agents import tts as agents_tts
 from livekit.plugins import deepgram, openai, silero
 from tavily import AsyncTavilyClient
 
+import appointments
+import database
 from runtime_config import DB_FILE, ENABLE_DEMO_TRIGGERS, HEARTBEAT_FILE, IS_PRODUCTION
 
 logging.basicConfig(
@@ -49,13 +52,9 @@ logger = logging.getLogger("agent_worker")
 logging.getLogger("livekit").setLevel(logging.INFO if IS_PRODUCTION else logging.DEBUG)
 
 def load_agent_config(agent_id: str):
-    if not DB_FILE.exists():
-        return None
     try:
-        with DB_FILE.open("r", encoding="utf-8") as f:
-            db = json.load(f)
-        return db.get(agent_id) if isinstance(db, dict) else None
-    except (OSError, json.JSONDecodeError) as exc:
+        return database.get_agent(agent_id)
+    except Exception as exc:
         logger.error("Could not read agent config: %s", exc)
         return None
 
@@ -143,6 +142,37 @@ async def entrypoint(ctx: JobContext):
     else:
         system_prompt = BASE_SAFETY_PROMPT + "You are a helpful, friendly AI voice assistant."
 
+    books_appointments = "appointments" in (config or {}).get("capabilities", [])
+    owner_id = (config or {}).get("owner_id")
+    hospital_name = appointments.HOSPITAL
+    if owner_id:
+        account = database.get_account(owner_id)
+        if account:
+            hospital_name = account["hospital_name"]
+    if books_appointments:
+        clock = datetime.now().strftime("%I:%M %p").lstrip("0")
+        system_prompt += (
+            "\nAPPOINTMENT TOOLS:\n"
+            f"Departments: {appointments.department_names()}.\n"
+            f"Right now it is {datetime.now().strftime('%A')} at {clock}.\n"
+            "The reference sheet is not a list of open times. "
+            "Call check_availability before you say any clock time. "
+            "Visits are every 30 minutes from 9:00 AM to 4:30 PM. "
+            "If the caller says today, pass today. Do not check tomorrow until they agree to another day. "
+            "Offer only the times that tool just returned, and say the weekday with each time. "
+            "If it says nothing is left today, say today is closed. Do not say the slots are filled. "
+            "Never offer a time that has already passed, even if the patient asks for it. "
+            "Ask for a name and a 10-digit phone number only after they choose one returned time. "
+            "Count the digits. If you have fewer or more than 10, ask for the full number and do not call book_appointment. "
+            "Call book_appointment only after you have the name, all 10 digits, and agreement. "
+            "To cancel, call cancel_appointment with the phone number used at booking and the confirmation number or the patient name. "
+            "After it succeeds, say the confirmation number and that no payment was taken. "
+            "If they ask who else is booked, say you can only confirm their own visit. "
+            "Call find_appointment with that same phone number and their confirmation number or their own name. "
+            "Never read another patient's name or phone number. "
+            "If a tool returns an error, say that in one sentence.\n"
+        )
+
     logger.info(f"[ROOM] 🔗 Connecting to room: {ctx.room.name}")
 
     try:
@@ -158,6 +188,23 @@ async def entrypoint(ctx: JobContext):
         return
 
     logger.info(f"[ROOM] ✅ Connected to room: {ctx.room.name}")
+    database.touch_call(owner_id or "", ctx.room.name)
+
+    async def _hold_call():
+        try:
+            while True:
+                await asyncio.sleep(20)
+                database.touch_call(owner_id or "", ctx.room.name)
+        except asyncio.CancelledError:
+            return
+
+    hold_call = asyncio.create_task(_hold_call())
+
+    async def _release_call():
+        hold_call.cancel()
+        database.release_call(ctx.room.name)
+
+    ctx.add_shutdown_callback(_release_call)
 
     # Sequence counter for monotonic data messaging
     msg_seq = 0
@@ -201,6 +248,12 @@ async def entrypoint(ctx: JobContext):
         ))
         llm_options.append(openai.LLM(
             model="openai/gpt-oss-120b",
+            base_url="https://api.groq.com/openai/v1",
+            api_key=groq_key,
+        ))
+        # Separate Groq quota. Used when the gpt-oss models hit the shared token limit.
+        llm_options.append(openai.LLM(
+            model="llama-3.1-8b-instant",
             base_url="https://api.groq.com/openai/v1",
             api_key=groq_key,
         ))
@@ -396,13 +449,71 @@ async def entrypoint(ctx: JobContext):
             logger.error(f"[TOOL] ❌ Web search failed: {e}")
             return f"Failed to search the web: {e}"
 
+    tools = [] if books_appointments else [web_search]
+    if books_appointments:
+        @agents_llm.function_tool(
+            name="check_availability",
+            description="List open appointment times for one department on a day. Day can be today, tomorrow, a weekday, or YYYY-MM-DD.",
+        )
+        async def check_availability(department: str, day: str):
+            try:
+                result = appointments.open_slots(department, day, owner_id)
+                logger.info("[TOOL] Open slots %s %s count=%s", result["department"], result["date"], len(result["open_slots"]))
+                return appointments.describe_open(result)
+            except ValueError as exc:
+                return str(exc)
+
+        @agents_llm.function_tool(
+            name="book_appointment",
+            description="Book one open slot after the patient agrees. Requires name, phone, department, day, and time.",
+        )
+        async def book_appointment(patient_name: str, phone: str, department: str, day: str, time: str):
+            try:
+                record = appointments.book(patient_name, phone, department, day, time, owner_id, hospital_name)
+                logger.info("[TOOL] Booked appointment %s", record["id"])
+                return (
+                    f"Booked. Confirmation {record['id']}. "
+                    f"{record['patient_name']} with {record['department']} on {record['date']} "
+                    f"at {appointments.speak_time(record['time'])}."
+                )
+            except ValueError as exc:
+                return str(exc)
+
+        @agents_llm.function_tool(
+            name="cancel_appointment",
+            description="Cancel one visit for this hospital. Requires the phone number used at booking, plus the confirmation number or the patient name.",
+        )
+        async def cancel_appointment(phone: str, confirmation_id: str = "", patient_name: str = ""):
+            try:
+                record = appointments.cancel(confirmation_id, patient_name, phone, owner_id)
+                logger.info("[TOOL] Cancelled appointment %s", record["id"])
+                return (
+                    f"Cancelled confirmation {record['id']}. "
+                    f"{record['patient_name']} is no longer booked for {record['department']} "
+                    f"on {record['date']} at {appointments.speak_time(record['time'])}. "
+                    "No payment was taken, so there is nothing to refund."
+                )
+            except ValueError as exc:
+                return str(exc)
+
+        @agents_llm.function_tool(
+            name="find_appointment",
+            description="Confirm this caller's own visit. Requires the phone number used at booking, plus the confirmation number or their name.",
+        )
+        async def find_appointment(phone: str, confirmation_id: str = "", patient_name: str = ""):
+            summary = appointments.describe_own_booking(confirmation_id, patient_name, phone, owner_id)
+            logger.info("[TOOL] Looked up one appointment")
+            return summary
+
+        tools.extend([check_availability, book_appointment, cancel_appointment, find_appointment])
+
     agent = Agent(
         vad=silero.VAD.load(),
         stt=stt,
         llm=llm,
         tts=tts,
         instructions=system_prompt,
-        tools=[web_search],
+        tools=tools,
     )
 
     session = AgentSession(
@@ -460,6 +571,11 @@ async def entrypoint(ctx: JobContext):
             "message": f"Provider error: {str(e)}",
             "recoverable": True
         }))
+        if source == "llm":
+            asyncio.ensure_future(session.say(
+                "One moment. Please say that again.",
+                allow_interruptions=True,
+            ))
 
     @session.on("close")
     def on_session_close(reason):

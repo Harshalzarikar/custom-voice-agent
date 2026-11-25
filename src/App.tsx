@@ -44,6 +44,11 @@ const API_BASE = rawApiUrl
   : 'http://localhost:5000';
 
 const api = axios.create({ baseURL: API_BASE, timeout: 20000 });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('vocal_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 const readApiError = (err: unknown, fallback: string) => {
   if (axios.isAxiosError(err)) {
@@ -100,6 +105,42 @@ interface Agent {
   objective: string;
   system_prompt: string;
   reference_text?: string;
+  capabilities?: string[];
+}
+
+interface Appointment {
+  id: string;
+  patient_name: string;
+  phone: string;
+  department: string;
+  date: string;
+  time: string;
+  label?: string;
+}
+
+interface CalendarCell {
+  time: string;
+  label: string;
+  state: 'open' | 'booked' | 'passed';
+}
+
+interface CalendarDay {
+  date: string;
+  weekday: string;
+  departments: Record<string, CalendarCell[]>;
+}
+
+interface Desk {
+  hospital: string;
+  clock: string;
+  date: string;
+  slot_minutes?: number;
+  opens?: string;
+  closes?: string;
+  today: Record<string, string[]>;
+  upcoming: Appointment[];
+  earlier: Appointment[];
+  days?: CalendarDay[];
 }
 
 interface TurnMetric {
@@ -444,10 +485,10 @@ const VoiceSession = ({
   }, [turns, interimUserText]);
 
   const getStateColor = () => {
-    if (state === 'speaking') return '#22d3ee';
-    if (state === 'listening') return '#6366f1';
-    if (state === 'thinking') return '#f59e0b';
-    return '#64748b';
+    if (state === 'speaking') return '#8a6a2f';
+    if (state === 'listening') return '#2f7d4a';
+    if (state === 'thinking') return '#a16207';
+    return '#8a8175';
   };
 
   const getStateLabel = () => {
@@ -541,7 +582,7 @@ const VoiceSession = ({
         </div>
 
         {/* Bar Visualizer */}
-        <div className="visualizer-box" style={{ borderColor: state === 'speaking' ? '#22d3ee44' : 'rgba(255,255,255,0.05)' }}>
+        <div className="visualizer-box" style={{ borderColor: state === 'speaking' ? '#c4a35a' : undefined }}>
           {state === 'speaking' && <div className="visualizer-glow" />}
           <BarVisualizer
             state={state}
@@ -631,7 +672,7 @@ const VoiceSession = ({
           {turns.length === 0 && !interimUserText && (
             <div className="transcript-empty">
               <Mic size={32} opacity={0.3} />
-              <p>Speak clearly into your microphone. The AI will respond in real-time with sub-500ms latency.</p>
+              <p>Speak clearly. This agent answers from the document and services you gave it.</p>
             </div>
           )}
 
@@ -916,6 +957,18 @@ const ArchitectureModal = ({ onClose }: { onClose: () => void }) => {
 // ── Main App Root ──
 const App = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [desk, setDesk] = useState<Desk | null>(null);
+  const [calendarDate, setCalendarDate] = useState('');
+  const [account, setAccount] = useState<{ id: string; email: string; hospital_name: string } | null>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authHospital, setAuthHospital] = useState('');
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [confirmationPhone, setConfirmationPhone] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [nextPassword, setNextPassword] = useState('');
+  const [confirmationNote, setConfirmationNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showArch, setShowArch] = useState(false);
@@ -941,16 +994,43 @@ const App = () => {
     try {
       const res = await api.get('/api/agents');
       setAgents(res.data);
+      setNotice(null);
     } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        localStorage.removeItem('vocal_token');
+        setAccount(null);
+        return;
+      }
       log('API', '❌ Failed to fetch agents', err);
       setNotice(readApiError(err, 'Could not load agents.'));
     }
   };
 
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get('/api/appointments');
+      setDesk(res.data);
+    } catch (err) {
+      log('API', 'Failed to fetch appointments', err);
+    }
+  };
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchAgents();
+    const token = localStorage.getItem('vocal_token');
+    if (!token) return;
+    api.get('/api/auth/me').then((res) => setAccount(res.data)).catch(() => {
+      localStorage.removeItem('vocal_token');
+      setAccount(null);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!account) return;
+    fetchAgents();
+    fetchAppointments();
+    const timer = setInterval(fetchAppointments, 4000);
+    return () => clearInterval(timer);
+  }, [account]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1000,6 +1080,7 @@ const App = () => {
     setActiveAgent(null);
     setIsDisconnected(false);
     setErrors([]);
+    fetchAppointments();
   };
 
   return (
@@ -1012,7 +1093,7 @@ const App = () => {
           </div>
           <div>
             <h1 className="brand-title">Custom Voice Agent</h1>
-            <p className="brand-sub">Real-Time Voice Assistant Architecture & Latency Engine</p>
+            <p className="brand-sub">Create an agent, then talk to it</p>
           </div>
         </motion.div>
         
@@ -1020,9 +1101,32 @@ const App = () => {
           <button onClick={() => setShowArch(true)} className="btn-secondary">
             <Layers size={16} /> Architecture & Latency Spec
           </button>
-          <button onClick={() => setShowCreate(true)} className="btn-primary">
+          <button
+            onClick={() => {
+              if (!account) {
+                setAuthMode('register');
+                setNotice('Create a hospital account before adding an agent.');
+                return;
+              }
+              setShowCreate(true);
+            }}
+            className="btn-primary"
+          >
             <Plus size={18} /> Create Agent
           </button>
+          {account && (
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                localStorage.removeItem('vocal_token');
+                setAccount(null);
+                setAgents([]);
+                setDesk(null);
+              }}
+            >
+              Sign out
+            </button>
+          )}
         </div>
       </header>
 
@@ -1037,6 +1141,139 @@ const App = () => {
       )}
 
       <main className="app-main">
+        {!account && (
+          <section className="create-panel auth-panel">
+            <h2 className="panel-title">{authMode === 'login' ? 'Sign in' : 'Create a hospital account'}</h2>
+            <p className="product-lead">
+              Each hospital sees only its own agents and calendar. A patient checks a visit with the confirmation number and the phone used at booking.
+            </p>
+            <form
+              className="create-form"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setLoading(true);
+                try {
+                  const path = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                  const res = await api.post(path, {
+                    email: authEmail,
+                    password: authPassword,
+                    hospital_name: authHospital,
+                  });
+                  localStorage.setItem('vocal_token', res.data.token);
+                  setAccount(res.data.account);
+                  setNotice(null);
+                } catch (err) {
+                  setNotice(readApiError(err, 'Could not sign in.'));
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              <div className="form-col">
+                <div className="input-group">
+                  <label>Email</label>
+                  <input type="email" required value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label>Password</label>
+                  <input type="password" required minLength={8} value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} />
+                </div>
+                {authMode === 'register' && (
+                  <div className="input-group">
+                    <label>Hospital name</label>
+                    <input required value={authHospital} onChange={(event) => setAuthHospital(event.target.value)} placeholder="City Hospital" />
+                  </div>
+                )}
+              </div>
+              <div className="form-submit">
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  {authMode === 'login' ? 'Sign in' : 'Create account'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                >
+                  {authMode === 'login' ? 'Need an account?' : 'Already have an account?'}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+        <form
+          className="confirm-lookup"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const code = confirmationCode.trim();
+            if (!code || !confirmationPhone.trim()) {
+              setConfirmationNote('Enter the confirmation number and the phone used at booking.');
+              return;
+            }
+            try {
+              const res = await api.get('/api/appointments/lookup', {
+                params: { confirmation: code, phone: confirmationPhone },
+              });
+              const visit = res.data;
+              setConfirmationNote(`${visit.patient_name} is confirmed for ${visit.department} on ${visit.date} at ${visit.label}. Number ${visit.id}.`);
+            } catch {
+              setConfirmationNote('No visit matches that confirmation number and phone.');
+            }
+          }}
+        >
+          <label htmlFor="confirmation-code">Check your confirmation</label>
+          <div className="confirm-row">
+            <input
+              id="confirmation-code"
+              value={confirmationCode}
+              placeholder="Confirmation number"
+              onChange={(event) => setConfirmationCode(event.target.value)}
+            />
+            <input
+              value={confirmationPhone}
+              placeholder="10-digit phone"
+              onChange={(event) => setConfirmationPhone(event.target.value)}
+            />
+            <button type="submit" className="btn-primary">Check</button>
+          </div>
+          {confirmationNote && <p>{confirmationNote}</p>}
+        </form>
+        {account && (<>
+        <form
+          className="confirm-lookup"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            try {
+              await api.post('/api/auth/password', {
+                current_password: currentPassword,
+                new_password: nextPassword,
+              });
+              setCurrentPassword('');
+              setNextPassword('');
+              setNotice('Password updated.');
+            } catch (err) {
+              setNotice(readApiError(err, 'Could not change the password.'));
+            }
+          }}
+        >
+          <label htmlFor="current-password">Change password</label>
+          <div className="confirm-row">
+            <input
+              id="current-password"
+              type="password"
+              value={currentPassword}
+              placeholder="Current password"
+              onChange={(event) => setCurrentPassword(event.target.value)}
+            />
+            <input
+              type="password"
+              minLength={8}
+              value={nextPassword}
+              placeholder="New password"
+              onChange={(event) => setNextPassword(event.target.value)}
+            />
+            <button type="submit" className="btn-secondary">Update</button>
+          </div>
+        </form>
         {/* Create Agent Panel */}
         <AnimatePresence>
           {showCreate && (
@@ -1052,17 +1289,17 @@ const App = () => {
                 <div className="form-col">
                   <div className="input-group">
                     <label>Agent Name</label>
-                    <input required placeholder="e.g. Aria - Support Engineer" value={name} onChange={(e) => setName(e.target.value)} />
+                    <input required placeholder="e.g. Harbor Desk" value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
                   <div className="input-group">
                     <label>Objective</label>
-                    <textarea required rows={3} placeholder="What is this agent's goal?" value={objective} onChange={(e) => setObjective(e.target.value)} />
+                    <textarea required rows={3} placeholder="Answer shop questions from the uploaded FAQ, in one or two sentences." value={objective} onChange={(e) => setObjective(e.target.value)} />
                   </div>
                 </div>
                 <div className="form-col">
                   <div className="input-group">
                     <label>System Prompt</label>
-                    <textarea required rows={4} placeholder="Detailed instructions for the agent..." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+                    <textarea required rows={4} placeholder="Answer only from the uploaded FAQ. If it is not in the file, say you do not know." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
                   </div>
                   <div className="input-group">
                     <label><FileText size={14} /> Reference File (PDF/TXT)</label>
@@ -1082,49 +1319,107 @@ const App = () => {
           )}
         </AnimatePresence>
 
-        {/* Agent Cards Grid */}
-        <div className="agents-grid">
-          {agents.map((agent, i) => (
-            <motion.div
-              layout
-              key={agent.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="agent-card"
-            >
-              <div className="card-top">
-                <div className="card-icon">
-                  <Bot size={22} />
-                </div>
-                <div className="card-status">
-                  <CheckCircle2 size={14} />
-                  <span>Ready</span>
-                </div>
-              </div>
-              <h3 className="card-name">{agent.name}</h3>
-              <p className="card-objective">{agent.objective}</p>
-              <button
-                onClick={() => startTalk(agent)}
-                disabled={loading}
-                className="btn-talk"
-              >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <><PhoneCall size={16} /> Start Voice Session</>}
-              </button>
-            </motion.div>
-          ))}
+        <p className="product-lead">
+          The product is the agent you create. Upload a document, set the job, and start a voice session.
+          Appointment booking is one service an agent can offer. City Hospital Front Desk is that example.
+          Its calendar is live: a visit every 30 minutes from 9:00 AM to 4:30 PM, and a taken time disappears for the next caller.
+        </p>
 
-          {agents.length === 0 && !showCreate && (
-            <div className="empty-state">
-              <div className="empty-icon"><Mic size={32} opacity={0.5} /></div>
-              <p className="empty-title">No agents configured</p>
-              <p className="empty-sub">Create your first AI voice agent to test low-latency conversation.</p>
-              <button onClick={() => setShowCreate(true)} className="btn-primary mt-6">
-                <Plus size={16} /> Create First Agent
-              </button>
+        {desk?.days && desk.days.length > 0 && (
+          <section className="calendar">
+            <div className="calendar-head">
+              <div>
+                <div className="desk-kicker">Calendar</div>
+                <h2>{desk.hospital}</h2>
+                <p>Every 30 minutes, {desk.opens} to {desk.closes}. It is {desk.clock}.</p>
+              </div>
             </div>
-          )}
+            <div className="cal-days">
+              {desk.days.map((day) => (
+                <button
+                  key={day.date}
+                  type="button"
+                  className={`cal-day ${ (calendarDate || desk.date) === day.date ? 'selected' : '' }`}
+                  onClick={() => setCalendarDate(day.date)}
+                >
+                  <strong>{day.weekday.slice(0, 3)}</strong>
+                  <span>{day.date.slice(5)}</span>
+                </button>
+              ))}
+            </div>
+            {(() => {
+              const selected = desk.days?.find((day) => day.date === (calendarDate || desk.date)) ?? desk.days?.[0];
+              if (!selected) return null;
+              const names = Object.keys(selected.departments);
+              const times = selected.departments[names[0]] ?? [];
+              return (
+                <div className="cal-table-wrap">
+                  <table className="cal-table">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        {names.map((name) => <th key={name}>{name}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {times.map((slot, index) => (
+                        <tr key={slot.time}>
+                          <td>{slot.label}</td>
+                          {names.map((name) => {
+                            const cell = selected.departments[name][index];
+                            return (
+                              <td key={name} className={`cal-cell ${cell.state}`}>
+                                {cell.state === 'booked' ? 'Booked' : cell.state === 'passed' ? 'Passed' : 'Open'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </section>
+        )}
+
+        <div className="agents-grid">
+          {agents.map((agent) => {
+            const books = agent.capabilities?.includes('appointments');
+            return (
+              <div key={agent.id} className="agent-card">
+                <div className="card-top">
+                  <div className="card-icon"><Bot size={22} /></div>
+                  <div className="card-status"><CheckCircle2 size={14} /><span>Ready</span></div>
+                </div>
+                <h3 className="card-name">{agent.name}</h3>
+                <p className="card-objective">{agent.objective}</p>
+                {books && (
+                  <div className="capability">
+                    <span className="cap-label">Service · appointments · every 30 min</span>
+                    <p>{desk ? `${desk.opens}–${desk.closes}. ${desk.upcoming.length} upcoming.` : 'Loading the calendar…'}</p>
+                  </div>
+                )}
+                <button className="btn-talk" onClick={() => startTalk(agent)} disabled={loading}>
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : <PhoneCall size={16} />}
+                  Start Voice Session
+                </button>
+              </div>
+            );
+          })}
         </div>
+
+        {agents.length === 0 && !showCreate && (
+          <div className="empty-state">
+            <div className="empty-icon"><Mic size={32} /></div>
+            <p className="empty-title">No agent yet</p>
+            <p className="empty-sub">Create one, upload a document, and start a voice session.</p>
+            <button onClick={() => setShowCreate(true)} className="btn-primary mt-6">
+              <Plus size={16} /> Create First Agent
+            </button>
+          </div>
+        )}
+        </>)}
       </main>
 
       {/* Voice Session Full-Screen Modal */}

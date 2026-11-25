@@ -1,10 +1,12 @@
 import os
 import re
+import sqlite3
 import uuid
 import json
 import time
 import logging
 import threading
+from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
@@ -15,6 +17,9 @@ from pydantic import BaseModel, Field
 from livekit import api
 import pypdf
 
+import appointments
+import auth
+import database
 from runtime_config import (
     DB_FILE,
     ENABLE_DEMO_TRIGGERS,
@@ -40,6 +45,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+SAMPLE_AGENT_ID = "7c2a9e14-6b8d-4f31-9a70-1d5e8c4b2a66"
+HOSPITAL_AGENT_ID = "3f1c8a20-91e4-4b7a-8d22-6a0e5b7c9d11"
+SAMPLE_FAQ = Path(__file__).resolve().parent / "samples" / "harbor-desk-faq.txt"
+HOSPITAL_FAQ = Path(__file__).resolve().parent / "samples" / "city-hospital.txt"
+
 app = FastAPI(title="Custom Voice Agent API", version="2.1.0")
 
 origins = allowed_origins()
@@ -56,8 +66,6 @@ app.add_middleware(
 )
 
 _db_lock = threading.Lock()
-_rate_lock = threading.Lock()
-_rate_hits: dict[str, list[float]] = {}
 
 ROOM_RE = re.compile(
     r"^agent_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_[a-z0-9]{3,16}$"
@@ -65,44 +73,110 @@ ROOM_RE = re.compile(
 
 
 def load_db():
-    if not DB_FILE.exists():
-        return {}
     try:
-        with DB_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, dict) else {}
-    except (OSError, json.JSONDecodeError) as exc:
+        return database.load_agents()
+    except sqlite3.Error as exc:
         logger.error("Agent store is unreadable: %s", exc)
         raise HTTPException(status_code=500, detail="Agent store is unavailable") from exc
 
 
 def save_db(db):
-    tmp = DB_FILE.with_suffix(".json.tmp")
-    with tmp.open("w", encoding="utf-8") as f:
-        json.dump(db, f)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, DB_FILE)
+    try:
+        database.save_agents(db)
+    except sqlite3.Error as exc:
+        logger.error("Agent store could not be saved: %s", exc)
+        raise HTTPException(status_code=500, detail="Agent store is unavailable") from exc
+
+
+def seed_sample_agent():
+    """The first-run agent is a shop support desk that answers from one FAQ."""
+    if not SAMPLE_FAQ.exists():
+        logger.warning("Sample FAQ is missing: %s", SAMPLE_FAQ)
+        return
+    with _db_lock:
+        db = load_db()
+        if SAMPLE_AGENT_ID not in db:
+            db[SAMPLE_AGENT_ID] = {
+                "id": SAMPLE_AGENT_ID,
+                "name": "Harbor Desk",
+                "objective": "Answer shop-owner questions from the Harbor Desk FAQ, in one or two spoken sentences.",
+                "system_prompt": (
+                    "You are the Harbor Desk voice support agent. "
+                    "Answer only from the reference FAQ. "
+                    "If the FAQ does not contain the answer, say you do not have that information "
+                    "and offer to take a message. "
+                    "Do not invent prices, hours, or policies. "
+                    "Keep every reply to one or two short sentences."
+                ),
+                "reference_text": SAMPLE_FAQ.read_text(encoding="utf-8").strip()[:MAX_REFERENCE_CHARS],
+            }
+            save_db(db)
+            logger.info("Seeded Harbor Desk support agent")
+    if not HOSPITAL_FAQ.exists():
+        logger.warning("Hospital sheet is missing: %s", HOSPITAL_FAQ)
+        return
+    with _db_lock:
+        db = load_db()
+        fresh_sheet = HOSPITAL_FAQ.read_text(encoding="utf-8").strip()[:MAX_REFERENCE_CHARS]
+        if HOSPITAL_AGENT_ID in db:
+            db[HOSPITAL_AGENT_ID]["reference_text"] = fresh_sheet
+            db[HOSPITAL_AGENT_ID]["capabilities"] = ["appointments"]
+            db[HOSPITAL_AGENT_ID]["system_prompt"] = (
+                "You are the City Hospital front desk. "
+                "Help the patient book General Medicine, Skin, or Pediatrics. "
+                "If they say today, call check_availability with today. Do not switch to tomorrow until they agree. "
+                "The reference sheet has no bookable times. "
+                "Offer only the times the tool returns, and say the weekday with each time. "
+                "Never offer a time that is already past. If today has no times left, say the day is closed. "
+                "Ask for the name and a 10-digit phone number only after they choose one open time. "
+                "To cancel, use cancel_appointment and say no payment was taken. "
+                "If they ask who else is booked, say you can only confirm their own visit. "
+                "Use find_appointment with their confirmation number or their name. Never read another patient's name. "
+                "Never invent a phone number, address, or website. "
+                "Keep each reply to one or two short sentences."
+            )
+            save_db(db)
+            return
+        db[HOSPITAL_AGENT_ID] = {
+            "id": HOSPITAL_AGENT_ID,
+            "name": "City Hospital Front Desk",
+            "objective": "Book one appointment after the patient agrees to an open time.",
+            "system_prompt": (
+                "You are the City Hospital front desk. "
+                "Help the patient book General Medicine, Skin, or Pediatrics. "
+                "If they say today, call check_availability with today. Do not switch to tomorrow until they agree. "
+                "The reference sheet has no bookable times. "
+                "Offer only the times the tool returns, and say the weekday with each time. "
+                "Never offer a time that is already past. If today has no times left, say the day is closed. "
+                "Ask for the name and a 10-digit phone number only after they choose one open time. "
+                "To cancel, use cancel_appointment and say no payment was taken. "
+                "If they ask who else is booked, say you can only confirm their own visit. "
+                "Use find_appointment with their confirmation number or their name. Never read another patient's name. "
+                "Never invent a phone number, address, or website. "
+                "Keep each reply to one or two short sentences."
+            ),
+            "reference_text": fresh_sheet,
+            "capabilities": ["appointments"],
+        }
+        save_db(db)
+        logger.info("Seeded City Hospital front desk")
+
+
+seed_sample_agent()
 
 
 def client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """Use the socket address. Trust the last forwarded hop only behind a known proxy."""
+    if os.getenv("TRUST_PROXY", "").strip().lower() in {"1", "true", "yes"}:
+        forwarded = [part.strip() for part in request.headers.get("x-forwarded-for", "").split(",") if part.strip()]
+        if forwarded:
+            return forwarded[-1]
     return request.client.host if request.client else "unknown"
 
 
 def rate_limit(request: Request, bucket: str, limit: int, window: float) -> None:
-    key = f"{bucket}:{client_ip(request)}"
-    now = time.monotonic()
-    with _rate_lock:
-        hits = [stamp for stamp in _rate_hits.get(key, []) if now - stamp < window]
-        if len(hits) >= limit:
-            raise HTTPException(status_code=429, detail="Too many requests. Try again in a minute.")
-        hits.append(now)
-        if len(_rate_hits) > 5000:
-            _rate_hits.clear()
-        _rate_hits[key] = hits
+    if not database.allow_request(f"{bucket}:{client_ip(request)}", limit, window):
+        raise HTTPException(status_code=429, detail="Too many requests. Try again in a minute.")
 
 
 @app.middleware("http")
@@ -197,6 +271,58 @@ def _extract_reference(filename: str, payload: bytes) -> str:
     return text.strip()[:MAX_REFERENCE_CHARS]
 
 
+def current_account(request: Request) -> dict:
+    account = auth.read_token(request.headers.get("authorization"))
+    if not account:
+        raise HTTPException(status_code=401, detail="Sign in required")
+    return account
+
+
+class AuthRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=200)
+    password: str = Field(min_length=8, max_length=200)
+    hospital_name: str = Field(default="", max_length=120)
+
+
+@app.post("/api/auth/register")
+async def register_account(body: AuthRequest, request: Request):
+    rate_limit(request, "auth", limit=8, window=60)
+    try:
+        return auth.register(body.email, body.password, body.hospital_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/auth/login")
+async def login_account(body: AuthRequest, request: Request):
+    rate_limit(request, "auth", limit=8, window=60)
+    try:
+        return auth.login(body.email, body.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, max_length=200)
+
+
+@app.post("/api/auth/password")
+async def change_password(body: PasswordChange, request: Request):
+    account = current_account(request)
+    rate_limit(request, "auth", limit=8, window=60)
+    try:
+        auth.change_password(account["id"], body.current_password, body.new_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+async def me(request: Request):
+    return current_account(request)
+
+
 @app.post("/api/agents")
 async def create_agent(
     request: Request,
@@ -242,25 +368,43 @@ async def create_agent(
     if agent_id and not re.fullmatch(r"[0-9a-fA-F-]{36}", agent_id):
         raise HTTPException(status_code=400, detail="Invalid agent id")
 
+    account = current_account(request)
     with _db_lock:
-        agents_db = load_db()
         new_id = agent_id or str(uuid.uuid4())
+        existing = database.get_agent(new_id)
+        if existing and existing.get("owner_id") not in {None, account["id"]}:
+            raise HTTPException(status_code=404, detail="Agent not found")
         agent = {
             "id": new_id,
+            "owner_id": account["id"],
             "name": name,
             "objective": objective,
             "system_prompt": system_prompt,
-            "reference_text": ref_text or agents_db.get(new_id, {}).get("reference_text", ""),
+            "reference_text": ref_text or (existing or {}).get("reference_text", ""),
+            "capabilities": (existing or {}).get("capabilities") or [],
         }
-        agents_db[new_id] = agent
-        save_db(agents_db)
+        database.upsert_agent(agent)
     logger.info("[API] Agent saved: id=%s", new_id)
     return {"success": True, "agent": agent}
 
+@app.get("/api/appointments/lookup")
+async def lookup_appointment(request: Request, confirmation: str = "", phone: str = ""):
+    rate_limit(request, "lookup", limit=8, window=60)
+    try:
+        return appointments.lookup(confirmation, phone)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/appointments")
+async def list_appointments(request: Request):
+    account = current_account(request)
+    return appointments.desk(account["id"], account["hospital_name"])
+
 @app.get("/api/agents")
-async def list_agents():
-    with _db_lock:
-        agents = list(load_db().values())
+async def list_agents(request: Request):
+    account = current_account(request)
+    agents = list(database.load_agents(account["id"]).values())
     logger.info("[API] GET /api/agents — Returning %s agents", len(agents))
     return agents
 
@@ -270,9 +414,14 @@ class TokenRequest(BaseModel):
 
 @app.post("/api/token")
 async def get_token(req: TokenRequest, request: Request):
+    account = current_account(request)
     rate_limit(request, "token", limit=20, window=60)
     if not ROOM_RE.match(req.room_name):
         raise HTTPException(status_code=400, detail="Invalid room name")
+    agent_id = req.room_name.split("_")[1]
+    agent = database.get_agent(agent_id)
+    if not agent or agent.get("owner_id") != account["id"]:
+        raise HTTPException(status_code=404, detail="Agent not found")
     participant = req.participant_name.strip()
     if not participant or any(ord(ch) < 32 for ch in participant):
         raise HTTPException(status_code=400, detail="Invalid participant name")
@@ -284,6 +433,8 @@ async def get_token(req: TokenRequest, request: Request):
         logger.error("[API] Token request rejected: LiveKit credentials are missing")
         raise HTTPException(status_code=503, detail="Voice service is not configured")
 
+    if not database.reserve_call(account["id"], req.room_name):
+        raise HTTPException(status_code=409, detail="The voice desk is already on a call. Try again in a minute.")
     logger.info("[API] POST /api/token — Room: '%s'", req.room_name)
     try:
         token = api.AccessToken(livekit_key, livekit_secret) \
@@ -305,8 +456,10 @@ async def get_token(req: TokenRequest, request: Request):
         finally:
             await lkapi.aclose()
     except HTTPException:
+        database.release_call(req.room_name)
         raise
     except Exception as exc:
+        database.release_call(req.room_name)
         logger.exception("[API] Token generation failed: %s", exc)
         raise HTTPException(status_code=502, detail="Could not start a voice session") from exc
 

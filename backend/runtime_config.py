@@ -23,6 +23,19 @@ UPLOAD_DIR = DATA_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 HEARTBEAT_FILE = DATA_DIR / "worker.heartbeat"
 
+def session_secret() -> str:
+    configured = os.getenv("SESSION_SECRET", "").strip()
+    if configured:
+        return configured
+    if IS_PRODUCTION:
+        raise RuntimeError("SESSION_SECRET is required when ENV=production")
+    path = DATA_DIR / ".session_secret"
+    if path.exists():
+        return path.read_text(encoding="utf-8").strip()
+    secret = os.urandom(32).hex()
+    path.write_text(secret, encoding="utf-8")
+    return secret
+
 ENABLE_DEMO_TRIGGERS = os.getenv(
     "ENABLE_DEMO_TRIGGERS",
     "false" if IS_PRODUCTION else "true",
