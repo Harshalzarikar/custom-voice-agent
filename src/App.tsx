@@ -740,7 +740,7 @@ const ArchitectureModal = ({ onClose }: { onClose: () => void }) => {
           <div className="arch-header-left">
             <div className="brand-icon-sm"><Zap size={18} /></div>
             <div>
-              <h2 className="arch-title">Vocal-Voice Architecture & Latency Budget</h2>
+              <h2 className="arch-title">Custom Voice Agent Architecture & Latency Budget</h2>
               <p className="arch-sub">Production-grade WebRTC Real-Time Voice Pipeline Specification</p>
             </div>
           </div>
@@ -1011,7 +1011,7 @@ const App = () => {
             <Zap size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="brand-title">Vocal-Voice</h1>
+            <h1 className="brand-title">Custom Voice Agent</h1>
             <p className="brand-sub">Real-Time Voice Assistant Architecture & Latency Engine</p>
           </div>
         </motion.div>

@@ -1,8 +1,8 @@
-# Vocal-Voice: High-Performance Real-Time Voice Agent Architecture
+# Custom Voice Agent: High-Performance Real-Time Voice Agent Architecture
 
 ## 1. System Overview & Latency Budget
 
-Vocal-Voice is an ultra-low-latency real-time voice assistant architecture engineered for conversational human-AI interactions. The pipeline achieves **sub-500ms End-to-End (E2E) conversational turnaround** using WebRTC streaming, tight audio endpointing, streaming LLM token generation, and real-time TTS audio chunk synthesis.
+Custom Voice Agent is an ultra-low-latency real-time voice assistant architecture engineered for conversational human-AI interactions. The pipeline achieves **sub-500ms End-to-End (E2E) conversational turnaround** using WebRTC streaming, tight audio endpointing, streaming LLM token generation, and real-time TTS audio chunk synthesis.
 
 ```
 +───────────────────────────────────────────────────────────────────────────────────────────+

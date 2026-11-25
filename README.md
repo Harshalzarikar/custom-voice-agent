@@ -1,4 +1,4 @@
-# Vocal-Voice
+# Custom Voice Agent
 
 My real-time voice assistant. The browser streams audio over WebRTC (LiveKit). Deepgram turns speech into text and text back into speech. Groq writes the reply. A FastAPI service creates agents and issues room tokens. A Python worker runs the live pipeline.
 

@@ -40,7 +40,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Vocal-Voice API", version="2.1.0")
+app = FastAPI(title="Custom Voice Agent API", version="2.1.0")
 
 origins = allowed_origins()
 if IS_PRODUCTION and not origins:
