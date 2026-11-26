@@ -141,7 +141,7 @@ A visit row holds:
 | `date` | `YYYY-MM-DD` |
 | `time` | `HH:MM`, spoken as a 12-hour time |
 
-In development, the first account to register claims agents and visits whose `owner_id` is null. In production that claim does not happen.
+The first account to register claims the seeded demo agents and any visits whose `owner_id` is null. This runs in production too, so a fresh production account can use the City Hospital booking agent. Later accounts cannot claim unowned rows.
 
 ### 3.3 WebRTC and the data channel
 

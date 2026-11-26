@@ -101,6 +101,8 @@ backend/appointments.json
 backend/scratch/
 uploads/
 backend/uploads/
+worker.heartbeat
+backend/worker.heartbeat
 
 
 # ==============================================================================

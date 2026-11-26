@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 
 import database
-from runtime_config import DATA_DIR
+from runtime_config import DATA_DIR, now_local
 
 LOCK = DATA_DIR / "appointments.lock"
 
@@ -97,7 +97,7 @@ def describe_open(result: dict) -> str:
 
 def resolve_day(day: str):
     text = " ".join(day.strip().lower().split())
-    today = datetime.now().date()
+    today = now_local().date()
     if text in {"today", ""}:
         found = today
     elif text == "tomorrow":
@@ -150,7 +150,7 @@ def speak_time(slot: str) -> str:
 
 def _still_ahead(when, slot: str, now: datetime | None = None) -> bool:
     """A slot today must still be at least 15 minutes away. Later days are unchanged."""
-    current = now or datetime.now()
+    current = now or now_local()
     if when != current.date():
         return True
     starts = datetime.combine(when, datetime.strptime(slot, "%H:%M").time())
@@ -160,7 +160,7 @@ def _still_ahead(when, slot: str, now: datetime | None = None) -> bool:
 def open_slots(department: str, day: str, owner_id: str) -> dict:
     dept = _normalize_department(department)
     when = resolve_day(day)
-    now = datetime.now()
+    now = now_local()
     taken = {
         row["time"]
         for row in _load(owner_id)
@@ -190,6 +190,14 @@ def _ten_digits(phone: str) -> str:
 
 
 def book(patient_name: str, phone: str, department: str, day: str, slot: str, owner_id: str, hospital: str) -> dict:
+    try:
+        return _book(patient_name, phone, department, day, slot, owner_id, hospital)
+    except ValueError:
+        database.audit("book", owner_id or "", "", False)
+        raise
+
+
+def _book(patient_name: str, phone: str, department: str, day: str, slot: str, owner_id: str, hospital: str) -> dict:
     if not owner_id:
         raise ValueError("This desk is not assigned to a hospital account.")
     name = " ".join(patient_name.strip().split())
@@ -235,6 +243,14 @@ def book(patient_name: str, phone: str, department: str, day: str, slot: str, ow
 
 
 def cancel(confirmation_id: str, patient_name: str, phone: str, owner_id: str) -> dict:
+    try:
+        return _cancel(confirmation_id, patient_name, phone, owner_id)
+    except ValueError:
+        database.audit("cancel", owner_id or "", confirmation_id or "", False)
+        raise
+
+
+def _cancel(confirmation_id: str, patient_name: str, phone: str, owner_id: str) -> dict:
     """Remove one visit only when the phone matches the booking."""
     if not owner_id:
         raise ValueError("This desk is not assigned to a hospital account.")
@@ -323,7 +339,7 @@ def _starts(row: dict) -> datetime:
 
 
 def desk(owner_id: str, hospital_name: str) -> dict:
-    now = datetime.now()
+    now = now_local()
     upcoming = []
     earlier = []
     for row in _load(owner_id):
@@ -358,7 +374,7 @@ def desk(owner_id: str, hospital_name: str) -> dict:
 
 
 def _week(owner_id: str) -> list:
-    now = datetime.now()
+    now = now_local()
     booked = {
         (row.get("department"), row.get("date"), row.get("time")): row
         for row in _load(owner_id)

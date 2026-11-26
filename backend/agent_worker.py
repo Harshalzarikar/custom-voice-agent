@@ -23,7 +23,6 @@ import logging
 import threading
 import time
 import uuid
-from datetime import datetime
 from typing import Optional, Dict, Any
 from livekit.agents import JobContext, WorkerOptions, cli, AutoSubscribe
 from livekit.agents.voice import Agent, AgentSession
@@ -35,7 +34,7 @@ from tavily import AsyncTavilyClient
 
 import appointments
 import database
-from runtime_config import DB_FILE, ENABLE_DEMO_TRIGGERS, HEARTBEAT_FILE, IS_PRODUCTION
+from runtime_config import DB_FILE, ENABLE_DEMO_TRIGGERS, HEARTBEAT_FILE, IS_PRODUCTION, now_local
 
 logging.basicConfig(
     level=logging.INFO,
@@ -109,6 +108,23 @@ def clean_content_text(content: Any) -> str:
     return str(content) if content is not None else ""
 
 
+def trim_chat_context(ctx: Any, max_items: int = 11) -> bool:
+    """Keep the pinned instruction plus the newest items. Returns True if trimmed."""
+    messages = ctx.messages()
+    if len(messages) <= max_items:
+        return False
+    # truncate() re-adds the system/developer message on top of max_items, so
+    # reserve one slot for it to keep the total stable at max_items.
+    has_instructions = any(message.role in ("system", "developer") for message in messages)
+    ctx.truncate(max_items=max_items - 1 if has_instructions else max_items)
+    return True
+
+
+def reset_tts_delay(wrapper: Any) -> None:
+    """Clear the demo delay flag even when a timeout cancels the sleep early."""
+    wrapper.delay_active = False
+
+
 async def entrypoint(ctx: JobContext):
     # Parse room name: agent_<id>_<random>
     parts = ctx.room.name.split("_")
@@ -150,11 +166,11 @@ async def entrypoint(ctx: JobContext):
         if account:
             hospital_name = account["hospital_name"]
     if books_appointments:
-        clock = datetime.now().strftime("%I:%M %p").lstrip("0")
+        clock = now_local().strftime("%I:%M %p").lstrip("0")
         system_prompt += (
             "\nAPPOINTMENT TOOLS:\n"
             f"Departments: {appointments.department_names()}.\n"
-            f"Right now it is {datetime.now().strftime('%A')} at {clock}.\n"
+            f"Right now it is {now_local().strftime('%A')} at {clock}.\n"
             "The reference sheet is not a list of open times. "
             "Call check_availability before you say any clock time. "
             "Visits are every 30 minutes from 9:00 AM to 4:30 PM. "
@@ -235,6 +251,8 @@ async def entrypoint(ctx: JobContext):
         smart_format=False,
         no_delay=True,
         filler_words=True,
+        numerals=True,
+        endpointing_ms=500,
     )
 
     # ── LLM: Groq with FallbackAdapter ──
@@ -387,6 +405,9 @@ async def entrypoint(ctx: JobContext):
                         turn_metrics["ttfb"] = time.perf_counter()
                 return chunk
             except asyncio.TimeoutError:
+                # The timeout can cancel the simulated delay before it resets the
+                # flag, so always clear it here or every later turn stays slow.
+                reset_tts_delay(self.wrapper)
                 logger.warning("[TTS] ⚠️ TTS generation timed out! Applying backpressure and fallback.")
                 self.cancelled = True
                 
@@ -410,9 +431,11 @@ async def entrypoint(ctx: JobContext):
             )
             self.base_tts = base_tts
             self.delay_active = False
+            self.active_stream = None
 
         def stream(self, *args, **kwargs):
-            return InterceptedTTSStream(self.base_tts.stream(*args, **kwargs), self)
+            self.active_stream = InterceptedTTSStream(self.base_tts.stream(*args, **kwargs), self)
+            return self.active_stream
             
         def synthesize(self, text: str, *args, **kwargs):
             return self.base_tts.synthesize(text, *args, **kwargs)
@@ -616,6 +639,13 @@ async def entrypoint(ctx: JobContext):
             logger.info(f"[PIPELINE] 🛑 Explicitly closing LLM stream for cancelled generation: {old_generation}")
             asyncio.ensure_future(llm_wrapper.active_stream.aclose())
             llm_wrapper.active_stream = None
+
+        # Stop any TTS audio still being synthesized for the interrupted turn,
+        # not just the text deltas the browser filters out.
+        if getattr(tts, 'active_stream', None) is not None:
+            logger.info(f"[PIPELINE] 🛑 Cancelling in-flight TTS stream for generation: {old_generation}")
+            tts.active_stream.cancelled = True
+            tts.active_stream = None
         
         asyncio.ensure_future(broadcast_event("generation_cancelled", {
             "cancelled_generation_id": old_generation,
@@ -719,25 +749,27 @@ async def entrypoint(ctx: JobContext):
                     async def run_ctx_test():
                         ctx = agent.chat_ctx.copy()
                         for i in range(15):
-                            ctx.messages.append(agents_llm.ChatMessage(
-                                role="user",
-                                content=f"Test historical message {i}"
-                            ))
-                        # Add a tool call and its output
-                        ctx.messages.append(agents_llm.ChatMessage(
-                            role="assistant",
-                            tool_calls=[agents_llm.ChatContext.from_dict({"id": "call_123", "type": "function", "function": {"name": "test_tool", "arguments": "{}"}})]
-                        ))
-                        ctx.messages.append(agents_llm.ChatMessage(
-                            role="tool",
+                            ctx.add_message(role="user", content=f"Test historical message {i}")
+                        # Add a tool call and its output so truncation can keep them paired.
+                        ctx.insert(agents_llm.FunctionCall(
+                            call_id="call_123",
                             name="test_tool",
-                            tool_call_id="call_123",
-                            content="Tool output result"
+                            arguments="{}",
+                        ))
+                        ctx.insert(agents_llm.FunctionCallOutput(
+                            call_id="call_123",
+                            name="test_tool",
+                            output="Tool output result",
+                            is_error=False,
                         ))
                         # Now truncate
                         ctx.truncate(max_items=10)
                         await agent.update_chat_ctx(ctx)
-                        logger.info(f"[TEST] 🧪 Context truncated. New size: {len(agent.chat_ctx.messages)}. Tool call paired? {agent.chat_ctx.messages[-1].role == 'tool'}")
+                        items = agent.chat_ctx.items
+                        logger.info(
+                            f"[TEST] 🧪 Context truncated. New size: {len(agent.chat_ctx.messages())}. "
+                            f"Last item type: {items[-1].type if items else 'none'}"
+                        )
                     asyncio.ensure_future(run_ctx_test())
                 
 
@@ -775,17 +807,22 @@ async def entrypoint(ctx: JobContext):
             if not guardrail_result["safe"]:
                 reason = guardrail_result["reason"]
                 logger.warning(f"[PIPELINE: 4] ❌ GUARDRAIL BLOCKED ({gr_ms:.1f}ms): {reason}")
+                # Preemptive generation may already be running for this transcript.
+                # Cancel it and drop the committed user turn so the model cannot
+                # answer the blocked text in the background.
+                try:
+                    if hasattr(session, 'interrupt'):
+                        session.interrupt()
+                    if hasattr(session, 'clear_user_turn'):
+                        session.clear_user_turn()
+                except RuntimeError:
+                    pass
                 if reason == "prompt_injection":
                     asyncio.ensure_future(session.say("I'm sorry, but I can't change my instructions."))
                 elif reason != "empty_input":
                     asyncio.ensure_future(session.say("I'm sorry, I'm not able to help with that topic."))
                 else:
-                    # Empty input detected: Explicitly clear the turn and interrupt any pending auto-generation
-                    logger.info("[PIPELINE] 🚨 Suppressing automatic response for empty transcript.")
-                    if hasattr(session, 'clear_user_turn'):
-                        session.clear_user_turn()
-                    if hasattr(session, 'interrupt'):
-                        session.interrupt()
+                    logger.info("[PIPELINE] 🚨 Suppressed automatic response for empty transcript.")
             else:
                 logger.info(f"[PIPELINE: 4] ✅ Guardrails passed ({gr_ms:.1f}ms). Sending to LLM...")
 
@@ -867,6 +904,7 @@ async def entrypoint(ctx: JobContext):
             payload = json.loads(dp.data.decode("utf-8"))
             if payload.get("type") == "playback_ack":
                 ack_time = time.perf_counter()
+                ack_generation = payload.get("generation_id") or current_generation_id
                 
                 if "user_stop" in turn_metrics:
                     e2e_true = (ack_time - turn_metrics["user_stop"]) * 1000
@@ -876,7 +914,7 @@ async def entrypoint(ctx: JobContext):
                 logger.info(f"[PIPELINE: 7] 🌐 Browser confirmed audio playback! (⏱️ True E2E: {e2e_true:.1f}ms)")
                 
                 asyncio.ensure_future(broadcast_event("playback_ack_metrics", {
-                    "generation_id": current_generation_id,
+                    "generation_id": ack_generation,
                     "browser_first_playback": ack_time,
                     "e2e_ms": round(e2e_true, 1)
                 }))
@@ -920,9 +958,8 @@ async def entrypoint(ctx: JobContext):
         try:
             if hasattr(agent, 'chat_ctx') and hasattr(agent, 'update_chat_ctx'):
                 ctx = agent.chat_ctx.copy()
-                if len(ctx.messages) > 11:
+                if trim_chat_context(ctx, max_items=11):
                     logger.info("[MEMORY] 🗜️ Context sliding window retained: System prompt + latest 10 messages (5 turns).")
-                    ctx.truncate(max_items=11)
                     asyncio.ensure_future(agent.update_chat_ctx(ctx))
         except Exception as e:
             logger.debug(f"[MEMORY] Context limit check failed: {e}")

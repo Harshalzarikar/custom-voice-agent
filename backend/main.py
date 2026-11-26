@@ -6,6 +6,7 @@ import json
 import time
 import logging
 import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
@@ -30,6 +31,7 @@ from runtime_config import (
     MAX_UPLOAD_BYTES,
     UPLOAD_DIR,
     allowed_origins,
+    session_secret,
 )
 
 logging.basicConfig(
@@ -50,7 +52,14 @@ HOSPITAL_AGENT_ID = "3f1c8a20-91e4-4b7a-8d22-6a0e5b7c9d11"
 SAMPLE_FAQ = Path(__file__).resolve().parent / "samples" / "harbor-desk-faq.txt"
 HOSPITAL_FAQ = Path(__file__).resolve().parent / "samples" / "city-hospital.txt"
 
-app = FastAPI(title="Custom Voice Agent API", version="2.1.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Fail fast in production when the signing/encryption secret is missing.
+    session_secret()
+    yield
+
+
+app = FastAPI(title="Custom Voice Agent API", version="2.1.0", lifespan=lifespan)
 
 origins = allowed_origins()
 if IS_PRODUCTION and not origins:
@@ -60,7 +69,7 @@ elif "*" in origins and IS_PRODUCTION:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins or ["http://localhost:5173"],
+    allow_origins=origins or ([] if IS_PRODUCTION else ["http://localhost:5173"]),
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
@@ -330,8 +339,10 @@ async def create_agent(
     objective: str = Form(...),
     system_prompt: str = Form(...),
     agent_id: Optional[str] = Form(None),
+    capabilities: Optional[str] = Form(None),
     reference_file: Optional[UploadFile] = File(None)
 ):
+    account = current_account(request)
     rate_limit(request, "agents", limit=10, window=60)
     name = _require_text(name, "Name", 80)
     objective = _require_text(objective, "Objective", 500)
@@ -372,8 +383,13 @@ async def create_agent(
     with _db_lock:
         new_id = agent_id or str(uuid.uuid4())
         existing = database.get_agent(new_id)
-        if existing and existing.get("owner_id") not in {None, account["id"]}:
+        if existing and existing.get("owner_id") != account["id"]:
             raise HTTPException(status_code=404, detail="Agent not found")
+        if capabilities is None:
+            caps = (existing or {}).get("capabilities") or []
+        else:
+            requested = {part.strip().lower() for part in capabilities.split(",") if part.strip()}
+            caps = [cap for cap in ("appointments",) if cap in requested]
         agent = {
             "id": new_id,
             "owner_id": account["id"],
@@ -381,7 +397,7 @@ async def create_agent(
             "objective": objective,
             "system_prompt": system_prompt,
             "reference_text": ref_text or (existing or {}).get("reference_text", ""),
-            "capabilities": (existing or {}).get("capabilities") or [],
+            "capabilities": caps,
         }
         database.upsert_agent(agent)
     logger.info("[API] Agent saved: id=%s", new_id)

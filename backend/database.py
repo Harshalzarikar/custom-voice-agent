@@ -11,15 +11,19 @@ import hashlib
 import json
 import os
 import sqlite3
+import threading
 import time
 from datetime import datetime, timezone
 
-from runtime_config import DATA_DIR, DB_FILE, IS_PRODUCTION
+from runtime_config import DATA_DIR, DB_FILE
 
 DB_PATH = DATA_DIR / "vocal.db"
 APPOINTMENTS_FILE = DATA_DIR / "appointments.json"
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 POSTGRES = DATABASE_URL.startswith("postgres")
+
+_init_done = False
+_init_lock = threading.Lock()
 
 
 def connect():
@@ -81,6 +85,18 @@ def _columns(conn, table: str) -> set[str]:
 
 
 def init() -> None:
+    """Create the schema once per process instead of on every database call."""
+    global _init_done
+    if _init_done:
+        return
+    with _init_lock:
+        if _init_done:
+            return
+        _init_schema()
+        _init_done = True
+
+
+def _init_schema() -> None:
     with session() as conn:
         _run(
             conn,
@@ -375,7 +391,10 @@ def create_account(account_id: str, email: str, password_hash: str, hospital_nam
                 """,
                 (account_id, email, password_hash, hospital_name, datetime.now(timezone.utc).isoformat()),
             )
-            if not IS_PRODUCTION and _one(conn, "SELECT COUNT(*) AS n FROM accounts")["n"] == 1:
+            # A fresh install seeds demo desks with no owner. The first account to
+            # register claims them, so production accounts can use the demo agents
+            # instead of being stuck with unowned, invisible rows.
+            if _one(conn, "SELECT COUNT(*) AS n FROM accounts")["n"] == 1:
                 _run(conn, "UPDATE agents SET owner_id = ? WHERE owner_id IS NULL", (account_id,))
                 _run(conn, "UPDATE appointments SET owner_id = ? WHERE owner_id IS NULL", (account_id,))
             _run(conn, "COMMIT")

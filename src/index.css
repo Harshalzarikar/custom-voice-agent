@@ -266,6 +266,22 @@ input, textarea, button { font-family: inherit; }
   box-shadow: 0 0 0 3px rgba(196, 163, 90, 0.28);
 }
 
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 .hidden { display: none; }
 
 .file-drop-zone {

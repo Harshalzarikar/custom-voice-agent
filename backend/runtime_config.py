@@ -1,7 +1,9 @@
 """Shared paths and environment loading for the API and the voice worker."""
 
 import os
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dotenv import load_dotenv
 
@@ -22,6 +24,18 @@ DB_FILE = DATA_DIR / "agents.json"
 UPLOAD_DIR = DATA_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 HEARTBEAT_FILE = DATA_DIR / "worker.heartbeat"
+
+HOSPITAL_TZ = os.getenv("HOSPITAL_TZ", "Asia/Kolkata").strip() or "Asia/Kolkata"
+try:
+    HOSPITAL_ZONE = ZoneInfo(HOSPITAL_TZ)
+except ZoneInfoNotFoundError:  # pragma: no cover - depends on host tz data
+    HOSPITAL_ZONE = ZoneInfo("UTC")
+
+
+def now_local() -> datetime:
+    """Naive datetime in the hospital's timezone, regardless of server locale."""
+    return datetime.now(HOSPITAL_ZONE).replace(tzinfo=None)
+
 
 def session_secret() -> str:
     configured = os.getenv("SESSION_SECRET", "").strip()

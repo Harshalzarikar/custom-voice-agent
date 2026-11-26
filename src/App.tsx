@@ -214,6 +214,7 @@ const VoiceSession = ({
   const activeGenerationIdRef = useRef<string>('gen_0');
   const cancelledGenerationsRef = useRef<Set<string>>(new Set());
   const lastChunkSeqRef = useRef<Map<string, number>>(new Map());
+  const pendingMetricsRef = useRef<Map<string, TurnMetric>>(new Map());
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
   const [interimUserText, setInterimUserText] = useState<string>('');
   const [latestMetrics, setLatestMetrics] = useState<TurnMetric | null>(null);
@@ -257,6 +258,7 @@ const VoiceSession = ({
         if (room && room.localParticipant) {
           const payload = new TextEncoder().encode(JSON.stringify({
             type: "playback_ack",
+            generation_id: activeGenerationIdRef.current,
             timestamp: Date.now()
           }));
           room.localParticipant.publishData(payload, { reliable: true }).catch(() => log('ROOM', 'Failed to send playback_ack'));
@@ -393,6 +395,13 @@ const VoiceSession = ({
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             };
 
+            // Metrics often arrive before the agent's final transcript. Attach
+            // any that were buffered for this generation instead of dropping them.
+            if (!isUser) {
+              const pending = pendingMetricsRef.current.get(genId);
+              if (pending) newTurn.metrics = pending;
+            }
+
             // Maintain sliding window retention (latest 10 dialog turns)
             const updated = [...prevTurns, newTurn];
             return updated.slice(-10);
@@ -402,16 +411,19 @@ const VoiceSession = ({
         // 4. Per-turn Latency Metrics Broadcast
         else if (type === 'turn_metrics') {
           const metrics: TurnMetric = data.metrics;
+          const genId = data.generation_id || activeGenerationIdRef.current;
           setLatestMetrics(metrics);
           log('METRICS', `⏱️ Turn #${data.turn} Latency: E2E=${metrics.e2e_ms}ms | STT=${metrics.stt_ms}ms | LLM=${metrics.llm_ttft_ms}ms | TTS=${metrics.tts_ttfb_ms}ms`);
 
-          // Attach metrics to the latest agent turn
+          // Buffer by generation so a transcript that arrives later still gets metrics.
+          pendingMetricsRef.current.set(genId, metrics);
           setTurns((prevTurns) => {
-            if (prevTurns.length === 0) return prevTurns;
             const updated = [...prevTurns];
-            const lastIndex = updated.length - 1;
-            if (updated[lastIndex].speaker === 'agent') {
-              updated[lastIndex] = { ...updated[lastIndex], metrics };
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].speaker === 'agent' && updated[i].generationId === genId) {
+                updated[i] = { ...updated[i], metrics };
+                break;
+              }
             }
             return updated;
           });
@@ -419,14 +431,21 @@ const VoiceSession = ({
 
         // 4b. Update the latest turn with the true E2E from the playback_ack
         else if (type === 'playback_ack_metrics') {
+          const genId = data.generation_id || activeGenerationIdRef.current;
+          const existing = pendingMetricsRef.current.get(genId);
+          pendingMetricsRef.current.set(genId, {
+            ...(existing ?? ({} as TurnMetric)),
+            browser_first_playback: data.browser_first_playback,
+            e2e_ms: data.e2e_ms,
+          });
           setTurns((prevTurns) => {
             const updated = [...prevTurns];
             for (let i = updated.length - 1; i >= 0; i--) {
-              if (updated[i].generationId === data.generation_id && updated[i].metrics) {
+              if (updated[i].generationId === genId) {
                 updated[i] = {
                   ...updated[i],
                   metrics: {
-                    ...updated[i].metrics!,
+                    ...(existing ?? updated[i].metrics ?? ({} as TurnMetric)),
                     browser_first_playback: data.browser_first_playback,
                     e2e_ms: data.e2e_ms
                   }
@@ -818,8 +837,8 @@ const ArchitectureModal = ({ onClose }: { onClose: () => void }) => {
         <div className="arch-body">
           {activeTab === 'latency' && (
             <div className="arch-tab-content">
-              <h3 className="content-h3">Sub-500ms End-to-End Latency Waterfall</h3>
-              <p className="content-desc">Breakdown of conversational turnaround from the moment the user stops speaking to the first audible AI sound:</p>
+              <h3 className="content-h3">Latency Budget vs. One Measured Turn</h3>
+              <p className="content-desc">Design budget per stage. One real call measured 933ms end to end, so it missed the sub-500ms plan; the model and speech synthesizer were the slow stages.</p>
               
               <div className="waterfall-container">
                 <div className="waterfall-item">
@@ -865,7 +884,7 @@ const ArchitectureModal = ({ onClose }: { onClose: () => void }) => {
 
               <div className="total-latency-banner">
                 <Sparkles size={18} className="text-accent" />
-                <span>Total Measured Conversational Turnaround: <strong>~405ms - 460ms</strong></span>
+                <span>Design budget: <strong>~435ms</strong> (target under 500ms) · Last measured turn: <strong>933ms</strong></span>
               </div>
             </div>
           )}
@@ -989,6 +1008,7 @@ const App = () => {
   const [objective, setObjective] = useState('');
   const [prompt, setPrompt] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [booksAppointments, setBooksAppointments] = useState(false);
 
   const fetchAgents = async () => {
     try {
@@ -1026,6 +1046,7 @@ const App = () => {
 
   useEffect(() => {
     if (!account) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAgents();
     fetchAppointments();
     const timer = setInterval(fetchAppointments, 4000);
@@ -1039,12 +1060,13 @@ const App = () => {
     formData.append('name', name);
     formData.append('objective', objective);
     formData.append('system_prompt', prompt);
+    if (booksAppointments) formData.append('capabilities', 'appointments');
     if (file) formData.append('reference_file', file);
     try {
       await api.post('/api/agents', formData);
       await fetchAgents();
       setShowCreate(false);
-      setName(''); setObjective(''); setPrompt(''); setFile(null);
+      setName(''); setObjective(''); setPrompt(''); setFile(null); setBooksAppointments(false);
       setNotice(null);
     } catch (err) {
       setNotice(readApiError(err, 'Could not create that agent.'));
@@ -1301,6 +1323,14 @@ const App = () => {
                     <label>System Prompt</label>
                     <textarea required rows={4} placeholder="Answer only from the uploaded FAQ. If it is not in the file, say you do not know." value={prompt} onChange={(e) => setPrompt(e.target.value)} />
                   </div>
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={booksAppointments}
+                      onChange={(e) => setBooksAppointments(e.target.checked)}
+                    />
+                    <span>Enable appointment booking (adds the hospital calendar tools)</span>
+                  </label>
                   <div className="input-group">
                     <label><FileText size={14} /> Reference File (PDF/TXT)</label>
                     <input type="file" accept=".pdf,.txt" id="file-upload" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
