@@ -1,0 +1,2651 @@
+{
+  "room": "agent_3f1c8a20-91e4-4b7a-8d22-6a0e5b7c9d11_c8da8346",
+  "duration_sec": 134.9,
+  "booking": {
+    "id": "2c0b0d33",
+    "owner_id": "df13bc92-6d66-48bc-a122-75524918ef3a",
+    "patient_name": "John Smith",
+    "phone": "gAAAAABrCCmVeFyfbwpqW1mDazQTBbrSONUAMra9DzyqpreqNHQLc_UpBGPXwUSP0lehrO9DCA1pwbsE0PWCA5avLmy4FO6gkw==",
+    "department": "general medicine",
+    "date": "2026-11-27",
+    "time": "09:00"
+  },
+  "booking_phone_matches_caller": true,
+  "user_turns": [
+    "I would like to book a general medicine appointment",
+    "for tomorrow, please.",
+    "Earliest time you offer works, please.",
+    "My name is John Smith.",
+    "My phone number is 9 8 7 6 5 4 3 2 1 0.",
+    "Yes. Please confirm the booking.",
+    "Can you tell me who else is booked tomorrow?"
+  ],
+  "agent_turns": [
+    "Hello! I'm ready. What can I help you with?",
+    "Great! The General Medicine clinic is open tomorrow. Here are some open slots: Friday at 9:00 AM, 9:30 AM, 10:00 AM, and 10:30 AM. Which one works for you?",
+    "Sure, I'll book you for Friday at 9:00 AM. May I have your name and a 10‑digit phone number to complete the reservation?",
+    "Thanks, John! Could you please give me a 10‑digit phone number to finish the booking?",
+    "Your appointment is confirmed for General Medicine tomorrow at 9:00 AM. Your confirmation number is 2c0b0d33. See you soon!",
+    "Your booking is confirmed: General Medicine on Friday at 9:00 AM, confirmation 2c0b0d33. If you need anything else, let me know!",
+    "I’m sorry, but I can only confirm your own appointment details."
+  ],
+  "metrics": [
+    {
+      "speech_end": -1,
+      "stt_final": 105813.9292745,
+      "llm_request_start": 105814.0496067,
+      "llm_first_nonempty_delta": 105816.1658811,
+      "tts_request_start": 105816.1658811,
+      "tts_first_audio_frame": 105816.4630366,
+      "browser_first_playback": -1,
+      "stt_ms": 0.0,
+      "llm_ttft_ms": 2116.3,
+      "tts_ttfb_ms": 297.2,
+      "e2e_ms": -1,
+      "speech_duration_ms": 0.0
+    },
+    {
+      "speech_end": 105838.4997847,
+      "stt_final": 105838.8306115,
+      "llm_request_start": 105838.8438373,
+      "llm_first_nonempty_delta": 105839.2274125,
+      "tts_request_start": 105839.2274125,
+      "tts_first_audio_frame": 105839.5287652,
+      "browser_first_playback": -1,
+      "stt_ms": 330.8,
+      "llm_ttft_ms": 383.6,
+      "tts_ttfb_ms": 301.4,
+      "e2e_ms": -1,
+      "speech_duration_ms": 2287.0
+    },
+    {
+      "speech_end": 105856.0125675,
+      "stt_final": 105856.4707191,
+      "llm_request_start": 105856.4845666,
+      "llm_first_nonempty_delta": 105856.9441539,
+      "tts_request_start": 105856.9441539,
+      "tts_first_audio_frame": 105857.2397899,
+      "browser_first_playback": -1,
+      "stt_ms": 458.2,
+      "llm_ttft_ms": 459.6,
+      "tts_ttfb_ms": 295.6,
+      "e2e_ms": -1,
+      "speech_duration_ms": 1604.7
+    },
+    {
+      "speech_end": 105875.8598386,
+      "stt_final": 105876.2449738,
+      "llm_request_start": 105876.2590411,
+      "llm_first_nonempty_delta": 105877.6002274,
+      "tts_request_start": 105877.6002274,
+      "tts_first_audio_frame": 105877.9094332,
+      "browser_first_playback": -1,
+      "stt_ms": 385.1,
+      "llm_ttft_ms": 1341.2,
+      "tts_ttfb_ms": 309.2,
+      "e2e_ms": -1,
+      "speech_duration_ms": 4997.3
+    },
+    {
+      "speech_end": 105899.0117712,
+      "stt_final": 105899.3297498,
+      "llm_request_start": 105899.3456787,
+      "llm_first_nonempty_delta": 105900.1140747,
+      "tts_request_start": 105900.1140747,
+      "tts_first_audio_frame": 105900.4391282,
+      "browser_first_playback": -1,
+      "stt_ms": 318.0,
+      "llm_ttft_ms": 768.4,
+      "tts_ttfb_ms": 325.1,
+      "e2e_ms": -1,
+      "speech_duration_ms": 2106.9
+    },
+    {
+      "speech_end": 105921.5129464,
+      "stt_final": 105921.8260301,
+      "llm_request_start": 105921.8398329,
+      "llm_first_nonempty_delta": 105922.5187958,
+      "tts_request_start": 105922.5187958,
+      "tts_first_audio_frame": 105922.8315914,
+      "browser_first_playback": -1,
+      "stt_ms": 313.1,
+      "llm_ttft_ms": 679.0,
+      "tts_ttfb_ms": 312.8,
+      "e2e_ms": -1,
+      "speech_duration_ms": 2149.4
+    }
+  ],
+  "privacy": {
+    "confirmation_only_status": 404,
+    "wrong_phone_status": 404,
+    "correct_phone_status": 200,
+    "lookup_keys": [
+      "date",
+      "department",
+      "id",
+      "label",
+      "patient_name",
+      "time"
+    ],
+    "plaintext_phone_on_disk": false
+  },
+  "events": [
+    {
+      "t": 1.54,
+      "type": "pipeline_health",
+      "data": {
+        "stt": "ready",
+        "llm": "ready",
+        "tts": "ready",
+        "webrtc": "connected",
+        "turn": 0,
+        "generation_id": "gen_0_ec4eec"
+      }
+    },
+    {
+      "t": 5.91,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Hello! I'm ready. What can I help you with?",
+        "is_final": true,
+        "generation_id": "gen_0_ec4eec",
+        "turn": 0
+      }
+    },
+    {
+      "t": 9.45,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_0_ec4eec",
+        "new_generation_id": "gen_1_e9d990",
+        "turn": 1,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 10.17,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "I would like to book",
+        "is_final": false,
+        "generation_id": "gen_1_e9d990",
+        "turn": 1
+      }
+    },
+    {
+      "t": 11.18,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "I would like to book a general medicine",
+        "is_final": false,
+        "generation_id": "gen_1_e9d990",
+        "turn": 1
+      }
+    },
+    {
+      "t": 12.21,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "I would like to book a general medicine appointment",
+        "is_final": true,
+        "generation_id": "gen_1_e9d990",
+        "turn": 1,
+        "stt_latency_ms": 0.0
+      }
+    },
+    {
+      "t": 13.01,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_1_e9d990"
+      }
+    },
+    {
+      "t": 13.03,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_1_e9d990",
+        "new_generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 13.03,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "for tomorrow, please.",
+        "is_final": false,
+        "generation_id": "gen_2_3e7731",
+        "turn": 2
+      }
+    },
+    {
+      "t": 13.33,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "for tomorrow, please.",
+        "is_final": true,
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "stt_latency_ms": 0.0
+      }
+    },
+    {
+      "t": 13.44,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_2_3e7731"
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": "Great",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": "!",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": " The",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": " General",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": " Medicine",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 15.56,
+      "type": "agent_delta",
+      "data": {
+        "text": " clinic",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " is",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " open",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " tomorrow",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " Here",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " are",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 15.57,
+      "type": "agent_delta",
+      "data": {
+        "text": " some",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": " open",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": " slots",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 15
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 16
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": " Friday",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 17
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": " at",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 18
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 19
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": "9",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 20
+      }
+    },
+    {
+      "t": 15.58,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 21
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "00",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 22
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 23
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 24
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 25
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 26
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "9",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 27
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 28
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "30",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 29
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 30
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 31
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 32
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 33
+      }
+    },
+    {
+      "t": 15.59,
+      "type": "agent_delta",
+      "data": {
+        "text": "10",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 34
+      }
+    },
+    {
+      "t": 15.6,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 35
+      }
+    },
+    {
+      "t": 15.6,
+      "type": "agent_delta",
+      "data": {
+        "text": "00",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 36
+      }
+    },
+    {
+      "t": 15.6,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 37
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 38
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 39
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": " and",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 40
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 41
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": "10",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 42
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 43
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": "30",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 44
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 45
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 46
+      }
+    },
+    {
+      "t": 15.61,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 47
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " Which",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 48
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " one",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 49
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " works",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 50
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " for",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 51
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " you",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 52
+      }
+    },
+    {
+      "t": 15.62,
+      "type": "agent_delta",
+      "data": {
+        "text": "?",
+        "generation_id": "gen_2_3e7731",
+        "turn": 2,
+        "chunk_sequence": 53
+      }
+    },
+    {
+      "t": 15.86,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 2,
+        "generation_id": "gen_2_3e7731",
+        "metrics": {
+          "speech_end": -1,
+          "stt_final": 105813.9292745,
+          "llm_request_start": 105814.0496067,
+          "llm_first_nonempty_delta": 105816.1658811,
+          "tts_request_start": 105816.1658811,
+          "tts_first_audio_frame": 105816.4630366,
+          "browser_first_playback": -1,
+          "stt_ms": 0.0,
+          "llm_ttft_ms": 2116.3,
+          "tts_ttfb_ms": 297.2,
+          "e2e_ms": -1,
+          "speech_duration_ms": 0.0
+        }
+      }
+    },
+    {
+      "t": 26.98,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Great! The General Medicine clinic is open tomorrow. Here are some open slots: Friday at 9:00 AM, 9:30 AM, 10:00 AM, and 10:30 AM. Which one works for you?",
+        "is_final": true,
+        "generation_id": "gen_2_3e7731",
+        "turn": 2
+      }
+    },
+    {
+      "t": 35.61,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_2_3e7731",
+        "new_generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 36.44,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Earliest time you",
+        "is_final": false,
+        "generation_id": "gen_3_03f1be",
+        "turn": 3
+      }
+    },
+    {
+      "t": 37.44,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Earliest time you offer Workspace?",
+        "is_final": false,
+        "generation_id": "gen_3_03f1be",
+        "turn": 3
+      }
+    },
+    {
+      "t": 38.23,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Earliest time you offer works, please.",
+        "is_final": true,
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "stt_latency_ms": 330.8
+      }
+    },
+    {
+      "t": 38.24,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_3_03f1be"
+      }
+    },
+    {
+      "t": 38.62,
+      "type": "agent_delta",
+      "data": {
+        "text": "Sure",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 38.62,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 38.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " I'll",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 38.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " book",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 38.62,
+      "type": "agent_delta",
+      "data": {
+        "text": " you",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " for",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " Friday",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " at",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": "9",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": "00",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 15
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " May",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 16
+      }
+    },
+    {
+      "t": 38.63,
+      "type": "agent_delta",
+      "data": {
+        "text": " I",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 17
+      }
+    },
+    {
+      "t": 38.64,
+      "type": "agent_delta",
+      "data": {
+        "text": " have",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 18
+      }
+    },
+    {
+      "t": 38.64,
+      "type": "agent_delta",
+      "data": {
+        "text": " your",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 19
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " name",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 20
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " and",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 21
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " a",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 22
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 23
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": "10",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 24
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": "‑",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 25
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": "digit",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 26
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " phone",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 27
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " number",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 28
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " to",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 29
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " complete",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 30
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " the",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 31
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": " reservation",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 32
+      }
+    },
+    {
+      "t": 38.65,
+      "type": "agent_delta",
+      "data": {
+        "text": "?",
+        "generation_id": "gen_3_03f1be",
+        "turn": 3,
+        "chunk_sequence": 33
+      }
+    },
+    {
+      "t": 38.93,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 3,
+        "generation_id": "gen_3_03f1be",
+        "metrics": {
+          "speech_end": 105838.4997847,
+          "stt_final": 105838.8306115,
+          "llm_request_start": 105838.8438373,
+          "llm_first_nonempty_delta": 105839.2274125,
+          "tts_request_start": 105839.2274125,
+          "tts_first_audio_frame": 105839.5287652,
+          "browser_first_playback": -1,
+          "stt_ms": 330.8,
+          "llm_ttft_ms": 383.6,
+          "tts_ttfb_ms": 301.4,
+          "e2e_ms": -1,
+          "speech_duration_ms": 2287.0
+        }
+      }
+    },
+    {
+      "t": 45.5,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Sure, I'll book you for Friday at 9:00 AM. May I have your name and a 10‑digit phone number to complete the reservation?",
+        "is_final": true,
+        "generation_id": "gen_3_03f1be",
+        "turn": 3
+      }
+    },
+    {
+      "t": 53.8,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_3_03f1be",
+        "new_generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 55.03,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My name is John Smith.",
+        "is_final": false,
+        "generation_id": "gen_4_6deccf",
+        "turn": 4
+      }
+    },
+    {
+      "t": 55.87,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My name is John Smith.",
+        "is_final": true,
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "stt_latency_ms": 458.2
+      }
+    },
+    {
+      "t": 55.88,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_4_6deccf"
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": "Thanks",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " John",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": "!",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " Could",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " you",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " please",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " give",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 56.34,
+      "type": "agent_delta",
+      "data": {
+        "text": " me",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 56.35,
+      "type": "agent_delta",
+      "data": {
+        "text": " a",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 56.35,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 56.35,
+      "type": "agent_delta",
+      "data": {
+        "text": "10",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": "‑",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": "digit",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " phone",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 15
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " number",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 16
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " to",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 17
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " finish",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 18
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " the",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 19
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": " booking",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 20
+      }
+    },
+    {
+      "t": 56.37,
+      "type": "agent_delta",
+      "data": {
+        "text": "?",
+        "generation_id": "gen_4_6deccf",
+        "turn": 4,
+        "chunk_sequence": 21
+      }
+    },
+    {
+      "t": 56.64,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 4,
+        "generation_id": "gen_4_6deccf",
+        "metrics": {
+          "speech_end": 105856.0125675,
+          "stt_final": 105856.4707191,
+          "llm_request_start": 105856.4845666,
+          "llm_first_nonempty_delta": 105856.9441539,
+          "tts_request_start": 105856.9441539,
+          "tts_first_audio_frame": 105857.2397899,
+          "browser_first_playback": -1,
+          "stt_ms": 458.2,
+          "llm_ttft_ms": 459.6,
+          "tts_ttfb_ms": 295.6,
+          "e2e_ms": -1,
+          "speech_duration_ms": 1604.7
+        }
+      }
+    },
+    {
+      "t": 60.96,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Thanks, John! Could you please give me a 10‑digit phone number to finish the booking?",
+        "is_final": true,
+        "generation_id": "gen_4_6deccf",
+        "turn": 4
+      }
+    },
+    {
+      "t": 70.26,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_4_6deccf",
+        "new_generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 70.41,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 71.41,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 72.43,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9 8 7",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 73.47,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9 8 7 6 5 4",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 73.77,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9 8 7 6 5 4",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 74.6,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9 8 7 6 5 4 3 2 1",
+        "is_final": false,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 75.64,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "My phone number is 9 8 7 6 5 4 3 2 1 0.",
+        "is_final": true,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "stt_latency_ms": 385.1
+      }
+    },
+    {
+      "t": 75.66,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_5_0613ec"
+      }
+    },
+    {
+      "t": 76.99,
+      "type": "agent_delta",
+      "data": {
+        "text": "Your",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 76.99,
+      "type": "agent_delta",
+      "data": {
+        "text": " appointment",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 76.99,
+      "type": "agent_delta",
+      "data": {
+        "text": " is",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 76.99,
+      "type": "agent_delta",
+      "data": {
+        "text": " confirmed",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 76.99,
+      "type": "agent_delta",
+      "data": {
+        "text": " for",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": " General",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": " Medicine",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": " tomorrow",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": " at",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": "9",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 77.0,
+      "type": "agent_delta",
+      "data": {
+        "text": "00",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 15
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 16
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " Your",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 17
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " confirmation",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 18
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " number",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 19
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " is",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 20
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 21
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": "2",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 22
+      }
+    },
+    {
+      "t": 77.01,
+      "type": "agent_delta",
+      "data": {
+        "text": "c",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 23
+      }
+    },
+    {
+      "t": 77.02,
+      "type": "agent_delta",
+      "data": {
+        "text": "0",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 24
+      }
+    },
+    {
+      "t": 77.02,
+      "type": "agent_delta",
+      "data": {
+        "text": "b",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 25
+      }
+    },
+    {
+      "t": 77.02,
+      "type": "agent_delta",
+      "data": {
+        "text": "0",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 26
+      }
+    },
+    {
+      "t": 77.02,
+      "type": "agent_delta",
+      "data": {
+        "text": "d",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 27
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": "33",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 28
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 29
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": " See",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 30
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": " you",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 31
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": " soon",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 32
+      }
+    },
+    {
+      "t": 77.03,
+      "type": "agent_delta",
+      "data": {
+        "text": "!",
+        "generation_id": "gen_5_0613ec",
+        "turn": 5,
+        "chunk_sequence": 33
+      }
+    },
+    {
+      "t": 77.32,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 5,
+        "generation_id": "gen_5_0613ec",
+        "metrics": {
+          "speech_end": 105875.8598386,
+          "stt_final": 105876.2449738,
+          "llm_request_start": 105876.2590411,
+          "llm_first_nonempty_delta": 105877.6002274,
+          "tts_request_start": 105877.6002274,
+          "tts_first_audio_frame": 105877.9094332,
+          "browser_first_playback": -1,
+          "stt_ms": 385.1,
+          "llm_ttft_ms": 1341.2,
+          "tts_ttfb_ms": 309.2,
+          "e2e_ms": -1,
+          "speech_duration_ms": 4997.3
+        }
+      }
+    },
+    {
+      "t": 87.59,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Your appointment is confirmed for General Medicine tomorrow at 9:00 AM. Your confirmation number is 2c0b0d33. See you soon!",
+        "is_final": true,
+        "generation_id": "gen_5_0613ec",
+        "turn": 5
+      }
+    },
+    {
+      "t": 96.3,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_5_0613ec",
+        "new_generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 96.76,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Yes.",
+        "is_final": false,
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6
+      }
+    },
+    {
+      "t": 97.72,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Yes. Please confirm the",
+        "is_final": false,
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6
+      }
+    },
+    {
+      "t": 98.73,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Yes. Please confirm the booking.",
+        "is_final": true,
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "stt_latency_ms": 318.0
+      }
+    },
+    {
+      "t": 98.74,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_6_b75a4d"
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": "Your",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " booking",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " is",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " confirmed",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " General",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " Medicine",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 99.51,
+      "type": "agent_delta",
+      "data": {
+        "text": " on",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": " Friday",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": " at",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": "9",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": ":",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": "00",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 15
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": "AM",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 16
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 17
+      }
+    },
+    {
+      "t": 99.52,
+      "type": "agent_delta",
+      "data": {
+        "text": " confirmation",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 18
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": " ",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 19
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "2",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 20
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "c",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 21
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "0",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 22
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "b",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 23
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "0",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 24
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "d",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 25
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": "33",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 26
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 27
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": " If",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 28
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": " you",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 29
+      }
+    },
+    {
+      "t": 99.53,
+      "type": "agent_delta",
+      "data": {
+        "text": " need",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 30
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": " anything",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 31
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": " else",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 32
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 33
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": " let",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 34
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": " me",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 35
+      }
+    },
+    {
+      "t": 99.54,
+      "type": "agent_delta",
+      "data": {
+        "text": " know",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 36
+      }
+    },
+    {
+      "t": 99.55,
+      "type": "agent_delta",
+      "data": {
+        "text": "!",
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6,
+        "chunk_sequence": 37
+      }
+    },
+    {
+      "t": 99.84,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 6,
+        "generation_id": "gen_6_b75a4d",
+        "metrics": {
+          "speech_end": 105899.0117712,
+          "stt_final": 105899.3297498,
+          "llm_request_start": 105899.3456787,
+          "llm_first_nonempty_delta": 105900.1140747,
+          "tts_request_start": 105900.1140747,
+          "tts_first_audio_frame": 105900.4391282,
+          "browser_first_playback": -1,
+          "stt_ms": 318.0,
+          "llm_ttft_ms": 768.4,
+          "tts_ttfb_ms": 325.1,
+          "e2e_ms": -1,
+          "speech_duration_ms": 2106.9
+        }
+      }
+    },
+    {
+      "t": 109.84,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "Your booking is confirmed: General Medicine on Friday at 9:00 AM, confirmation 2c0b0d33. If you need anything else, let me know!",
+        "is_final": true,
+        "generation_id": "gen_6_b75a4d",
+        "turn": 6
+      }
+    },
+    {
+      "t": 118.76,
+      "type": "generation_cancelled",
+      "data": {
+        "cancelled_generation_id": "gen_6_b75a4d",
+        "new_generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "reason": "user_interruption"
+      }
+    },
+    {
+      "t": 119.12,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Peter,",
+        "is_final": false,
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7
+      }
+    },
+    {
+      "t": 120.12,
+      "type": "interim_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Can you tell me who else is booked",
+        "is_final": false,
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7
+      }
+    },
+    {
+      "t": 121.23,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "user",
+        "text": "Can you tell me who else is booked tomorrow?",
+        "is_final": true,
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "stt_latency_ms": 313.1
+      }
+    },
+    {
+      "t": 121.23,
+      "type": "pipeline_status",
+      "data": {
+        "state": "thinking",
+        "generation_id": "gen_7_3ba2ff"
+      }
+    },
+    {
+      "t": 121.91,
+      "type": "agent_delta",
+      "data": {
+        "text": "I",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 1
+      }
+    },
+    {
+      "t": 121.91,
+      "type": "agent_delta",
+      "data": {
+        "text": "’m",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 2
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " sorry",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 3
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": ",",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 4
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " but",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 5
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " I",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 6
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " can",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 7
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " only",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 8
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " confirm",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 9
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " your",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 10
+      }
+    },
+    {
+      "t": 121.92,
+      "type": "agent_delta",
+      "data": {
+        "text": " own",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 11
+      }
+    },
+    {
+      "t": 121.93,
+      "type": "agent_delta",
+      "data": {
+        "text": " appointment",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 12
+      }
+    },
+    {
+      "t": 121.93,
+      "type": "agent_delta",
+      "data": {
+        "text": " details",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 13
+      }
+    },
+    {
+      "t": 121.93,
+      "type": "agent_delta",
+      "data": {
+        "text": ".",
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7,
+        "chunk_sequence": 14
+      }
+    },
+    {
+      "t": 122.24,
+      "type": "turn_metrics",
+      "data": {
+        "turn": 7,
+        "generation_id": "gen_7_3ba2ff",
+        "metrics": {
+          "speech_end": 105921.5129464,
+          "stt_final": 105921.8260301,
+          "llm_request_start": 105921.8398329,
+          "llm_first_nonempty_delta": 105922.5187958,
+          "tts_request_start": 105922.5187958,
+          "tts_first_audio_frame": 105922.8315914,
+          "browser_first_playback": -1,
+          "stt_ms": 313.1,
+          "llm_ttft_ms": 679.0,
+          "tts_ttfb_ms": 312.8,
+          "e2e_ms": -1,
+          "speech_duration_ms": 2149.4
+        }
+      }
+    },
+    {
+      "t": 125.89,
+      "type": "final_transcript",
+      "data": {
+        "speaker": "agent",
+        "text": "I’m sorry, but I can only confirm your own appointment details.",
+        "is_final": true,
+        "generation_id": "gen_7_3ba2ff",
+        "turn": 7
+      }
+    }
+  ]
+}

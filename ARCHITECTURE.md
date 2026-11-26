@@ -242,7 +242,7 @@ A turn that is split into several transcripts still reaches the model as several
 | LiveKit data channel | Metrics, cancellation, transcripts | Ordered control messages beside the audio, without a second socket. |
 | Process memory | The live conversation | One session lives in one worker. The durable facts are in the database. |
 | SQLite `vocal.db` | Local accounts, agents, visits, rate limits, audit, active calls | One file in `DATA_DIR`. WAL and a 5 second busy timeout. |
-| Postgres | Same schema when `DATABASE_URL` starts with `postgres` | For a split API and worker, or a host whose disk does not survive the way you need. This branch is implemented and has not been executed against a server in this repo. |
+| Postgres | Same schema when `DATABASE_URL` starts with `postgres` | For a split API and worker, or a host whose disk does not survive the way you need. CI runs `backend/test_postgres.py` against a Postgres 16 service container. |
 | Fernet | Phone numbers at rest | Ciphertext in the phone column. The key is derived from `SESSION_SECRET`. |
 
 JSON files (`agents.json`, `appointments.json`) are imported once when the matching table is empty. They are not the live store.

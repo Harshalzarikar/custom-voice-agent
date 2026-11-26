@@ -1,0 +1,30 @@
+LIVE CALL — City Hospital Front Desk
+room: agent_3f1c8a20-91e4-4b7a-8d22-6a0e5b7c9d11_c8da8346
+duration: 134.9s
+
+CALLER: I would like to book a general medicine appointment
+CALLER: for tomorrow, please.
+CALLER: Earliest time you offer works, please.
+CALLER: My name is John Smith.
+CALLER: My phone number is 9 8 7 6 5 4 3 2 1 0.
+CALLER: Yes. Please confirm the booking.
+CALLER: Can you tell me who else is booked tomorrow?
+
+AGENT: Hello! I'm ready. What can I help you with?
+AGENT: Great! The General Medicine clinic is open tomorrow. Here are some open slots: Friday at 9:00 AM, 9:30 AM, 10:00 AM, and 10:30 AM. Which one works for you?
+AGENT: Sure, I'll book you for Friday at 9:00 AM. May I have your name and a 10‑digit phone number to complete the reservation?
+AGENT: Thanks, John! Could you please give me a 10‑digit phone number to finish the booking?
+AGENT: Your appointment is confirmed for General Medicine tomorrow at 9:00 AM. Your confirmation number is 2c0b0d33. See you soon!
+AGENT: Your booking is confirmed: General Medicine on Friday at 9:00 AM, confirmation 2c0b0d33. If you need anything else, let me know!
+AGENT: I’m sorry, but I can only confirm your own appointment details.
+
+turn 2: stt=0.0ms llm=2116.3ms tts=297.2ms
+turn 3: stt=330.8ms llm=383.6ms tts=301.4ms
+turn 4: stt=458.2ms llm=459.6ms tts=295.6ms
+turn 5: stt=385.1ms llm=1341.2ms tts=309.2ms
+turn 6: stt=318.0ms llm=768.4ms tts=325.1ms
+turn 7: stt=313.1ms llm=679.0ms tts=312.8ms
+
+BOOKING: 2c0b0d33 general medicine 2026-11-27 09:00
+PHONE MATCHES CALLER: True
+PRIVACY: confirmation-only=404 wrong-phone=404 correct-phone=200 plaintext-on-disk=False

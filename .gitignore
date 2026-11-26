@@ -162,6 +162,9 @@ backend/vocal_voice.log
 backend/frontend.log
 *.log
 
+# Raw demo audio is large; the mp4 and transcript are committed.
+demo/*.wav
+
 # Build artifacts
 dist/
 

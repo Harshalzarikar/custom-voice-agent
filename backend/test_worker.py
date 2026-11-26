@@ -87,6 +87,18 @@ class WorkerLogicTest(unittest.TestCase):
         self.worker.reset_tts_delay(wrapper)
         self.assertFalse(wrapper.delay_active)
 
+    def test_phone_guard_accepts_digits_the_caller_said(self):
+        texts = ["My phone number is 9 8 7 6 5 4 3 2 1 0."]
+        self.assertTrue(self.worker.phone_was_spoken("9876543210", texts))
+
+    def test_phone_guard_accepts_digits_split_across_finals(self):
+        texts = ["My phone number is 9 8 7", "6 5 4 3 2 1 0."]
+        self.assertTrue(self.worker.phone_was_spoken("9876543210", texts))
+
+    def test_phone_guard_rejects_invented_digits(self):
+        texts = ["My phone number is 9 8 7 5 4 3 2 1 0."]
+        self.assertFalse(self.worker.phone_was_spoken("1234567890", texts))
+
 
 if __name__ == "__main__":
     unittest.main()

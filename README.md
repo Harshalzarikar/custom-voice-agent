@@ -4,6 +4,12 @@ A real-time voice assistant. You sign in, create an agent, give it a job and a d
 
 The browser streams audio over WebRTC (LiveKit). Deepgram turns speech into text and text back into speech. Groq writes the reply. A FastAPI service stores accounts, agents, and visits. A Python worker runs the live call.
 
+## Demo
+
+A real booking call is recorded in [`demo/live_call.mp4`](./demo/live_call.mp4) (2m15s). The caller books General Medicine for the next day, the agent reads back the confirmation, and the agent refuses to name any other patient. The same call is written up in [`demo/live_call.txt`](./demo/live_call.txt), with the full event stream and per-turn metrics in [`demo/live_call.json`](./demo/live_call.json).
+
+The recording is the mixed caller and agent audio from a LiveKit room, captured by a probe participant that speaks through Deepgram TTS and listens on the data channel.
+
 ## Latency
 
 The design target is a turn under **500ms**, from the moment speech ends to the first audio of the reply. That budget is a plan. The table under it is one real turn, not that plan.
@@ -61,6 +67,8 @@ One voice worker holds one live call (`MAX_ACTIVE_CALLS`, default 1). A second t
 
 **Groq can refuse a turn.** `gpt-oss-20b` and `gpt-oss-120b` share one token budget. When both fail, the worker tries `llama-3.1-8b-instant`. That third name has to be a model the Groq account can call. If every model fails, the worker asks the caller to say that again, and the booking tool does not run.
 
+**A phone number can be misheard and the model may invent the missing digit.** Deepgram runs with `numerals=true` so spoken digits arrive as digits, and a 500ms endpointing window so one sentence is not split into fragments. The `book_appointment` tool then checks that the 10 digits it was handed actually appear in the caller's recent transcripts. If they do not, the tool refuses and asks the caller to repeat the number instead of writing a fabricated contact.
+
 Deeper notes on the waterfall, the booking data, and the barge-in sequence are in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Run it locally
@@ -96,11 +104,19 @@ $env:DATA_DIR = "d:\Documents\vocal-voice\backend"
 python main.py
 ```
 
-Open `http://localhost:5173`, register a hospital, and start a session. The first account created while `ENV=development` claims agents and visits that have no owner. Production registration does not claim those rows.
+Open `http://localhost:5173`, register a hospital, and start a session. The first account created claims agents and visits that have no owner, in development and in production. Later accounts only see their own agents.
 
 `ENABLE_DEMO_TRIGGERS` defaults to on locally and off in production. While it is on, saying "simulate delay" or "simulate duplicate" exercises the timeout and the duplicate-packet drop.
 
 `SESSION_SECRET` signs the 14-day login token and encrypts phone numbers. Locally, if it is unset, a secret is written under `DATA_DIR`. Changing it makes stored phones unreadable. Production refuses to boot without `SESSION_SECRET`.
+
+## Tests
+
+```bash
+python -m unittest discover -s backend -p "test_*.py" -v
+```
+
+The suite covers auth, rate limits, the 409 busy-desk response, upload auth-before-parse, booking privacy, the phone guard, context truncation, guardrails, and the TTS delay reset. `backend/test_postgres.py` runs when `TEST_POSTGRES_URL` is set; CI starts a Postgres 16 service container, so the Postgres branch is exercised on every push. CI also lints and builds the frontend.
 
 ## Deploy
 
@@ -122,4 +138,4 @@ Set these on the backend service before the first boot:
 | `TRUST_PROXY` | `true` on Render, so the last forwarded hop is the client |
 | `MAX_ACTIVE_CALLS` | `1` |
 
-SQLite on that disk keeps accounts and visits across a redeploy of the same service. Set `DATABASE_URL` when the API and the worker should share Postgres. That path is in the code. It has not been run against a live Postgres server in this project.
+SQLite on that disk keeps accounts and visits across a redeploy of the same service. Set `DATABASE_URL` when the API and the worker should share Postgres. CI starts a Postgres 16 service container and runs `backend/test_postgres.py` against it, so that branch is exercised on every push.

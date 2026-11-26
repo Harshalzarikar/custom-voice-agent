@@ -125,6 +125,18 @@ def reset_tts_delay(wrapper: Any) -> None:
     wrapper.delay_active = False
 
 
+def phone_was_spoken(phone: str, recent_user_texts: list[str]) -> bool:
+    """True when the tool's phone digits actually appear in what the caller said."""
+    digits = "".join(ch for ch in phone if ch.isdigit())
+    if not digits:
+        return False
+    spoken = "".join(
+        "".join(ch for ch in text if ch.isdigit())
+        for text in recent_user_texts[-8:]
+    )
+    return digits in spoken
+
+
 async def entrypoint(ctx: JobContext):
     # Parse room name: agent_<id>_<random>
     parts = ctx.room.name.split("_")
@@ -472,6 +484,8 @@ async def entrypoint(ctx: JobContext):
             logger.error(f"[TOOL] ❌ Web search failed: {e}")
             return f"Failed to search the web: {e}"
 
+    recent_user_texts: list[str] = []
+
     tools = [] if books_appointments else [web_search]
     if books_appointments:
         @agents_llm.function_tool(
@@ -491,6 +505,12 @@ async def entrypoint(ctx: JobContext):
             description="Book one open slot after the patient agrees. Requires name, phone, department, day, and time.",
         )
         async def book_appointment(patient_name: str, phone: str, department: str, day: str, time: str):
+            if not phone_was_spoken(phone, recent_user_texts):
+                logger.warning("[TOOL] Rejected a phone number the caller did not say")
+                return (
+                    "Rejected: that phone number was not heard from the caller. "
+                    "Do not invent digits. Ask the caller to repeat the full 10-digit number."
+                )
             try:
                 record = appointments.book(patient_name, phone, department, day, time, owner_id, hospital_name)
                 logger.info("[TOOL] Booked appointment %s", record["id"])
@@ -692,6 +712,8 @@ async def entrypoint(ctx: JobContext):
             }))
         else:
             start_user_turn_if_needed()
+            recent_user_texts.append(text_clean)
+            del recent_user_texts[:-8]
             curr_time = time.perf_counter()
             turn_metrics["stt_finalized"] = curr_time
             
